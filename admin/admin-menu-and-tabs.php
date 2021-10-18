@@ -2,23 +2,23 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly
 
 /**
- * Class Disciple_Tools_Plugin_Starter_Template_Menu
+ * Class DT_Advanced_Metrics_Menu
  */
-class Disciple_Tools_Plugin_Starter_Template_Menu {
+class DT_Advanced_Metrics_Menu {
 
-    public $token = 'disciple_tools_plugin_starter_template';
-    public $page_title = 'Plugin Starter Template';
+    public $token = 'dt_advanced_metrics';
+    public $page_title = 'Advanced Metrics';
 
     private static $_instance = null;
 
     /**
-     * Disciple_Tools_Plugin_Starter_Template_Menu Instance
+     * DT_Advanced_Metrics_Menu Instance
      *
-     * Ensures only one instance of Disciple_Tools_Plugin_Starter_Template_Menu is loaded or can be loaded.
+     * Ensures only one instance of DT_Advanced_Metrics_Menu is loaded or can be loaded.
      *
      * @since 0.1.0
      * @static
-     * @return Disciple_Tools_Plugin_Starter_Template_Menu instance
+     * @return DT_Advanced_Metrics_Menu instance
      */
     public static function instance() {
         if ( is_null( self::$_instance ) ) {
@@ -73,7 +73,7 @@ class Disciple_Tools_Plugin_Starter_Template_Menu {
 
         ?>
         <div class="wrap">
-            <h2>Plugin Starter Template</h2>
+            <h2>Advanced Metrics</h2>
             <h2 class="nav-tab-wrapper">
                 <a href="<?php echo esc_attr( $link ) . 'general' ?>"
                    class="nav-tab <?php echo esc_html( ( $tab == 'general' || !isset( $tab ) ) ? 'nav-tab-active' : '' ); ?>">General</a>
@@ -83,11 +83,11 @@ class Disciple_Tools_Plugin_Starter_Template_Menu {
             <?php
             switch ( $tab ) {
                 case "general":
-                    $object = new Disciple_Tools_Plugin_Starter_Template_Tab_General();
+                    $object = new DT_Advanced_Metrics_Tab_General();
                     $object->content();
                     break;
                 case "second":
-                    $object = new Disciple_Tools_Plugin_Starter_Template_Tab_Second();
+                    $object = new DT_Advanced_Metrics_Tab_Second();
                     $object->content();
                     break;
                 default:
@@ -100,12 +100,12 @@ class Disciple_Tools_Plugin_Starter_Template_Menu {
         <?php
     }
 }
-Disciple_Tools_Plugin_Starter_Template_Menu::instance();
+DT_Advanced_Metrics_Menu::instance();
 
 /**
- * Class Disciple_Tools_Plugin_Starter_Template_Tab_General
+ * Class DT_Advanced_Metrics_Tab_General
  */
-class Disciple_Tools_Plugin_Starter_Template_Tab_General {
+class DT_Advanced_Metrics_Tab_General {
     public function content() {
         ?>
         <div class="wrap">
@@ -180,9 +180,9 @@ class Disciple_Tools_Plugin_Starter_Template_Tab_General {
 
 
 /**
- * Class Disciple_Tools_Plugin_Starter_Template_Tab_Second
+ * Class DT_Advanced_Metrics_Tab_Second
  */
-class Disciple_Tools_Plugin_Starter_Template_Tab_Second {
+class DT_Advanced_Metrics_Tab_Second {
     public function content() {
         ?>
         <div class="wrap">
