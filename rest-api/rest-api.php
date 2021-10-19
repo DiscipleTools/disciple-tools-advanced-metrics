@@ -395,7 +395,7 @@ class Disciple_Tools_Advanced_Metrics
             'group_health_practices' => 'practice group health elements',
             'church_baptism' => 'baptise people',
             'church_bible' => 'read the Bible',
-            'church_commitment' => 'committed to identify themselves as a church',
+            'church_commitment' => 'commit to identify themselves as a church',
             'church_communion' => 'partake in communion',
             'church_fellowship' => 'have fellowship amongst themselves',
             'church_giving' => 'give',
