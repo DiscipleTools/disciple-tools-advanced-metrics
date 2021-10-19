@@ -43,9 +43,23 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
-            $namespace, '/get_group_insights', [
+            $namespace, '/get_groups_data', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_group_insights' ],
+                'callback' => [ $this, 'get_groups_data' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get_groups_corr_data', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_groups_corr_data' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get_groups_insights', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_groups_insights' ],
             ]
         );
     }
@@ -238,7 +252,7 @@ class Disciple_Tools_Advanced_Metrics
     }
 
     // Use machine learning to find insights from group data
-    public function get_group_insights() {
+    public function get_groups_data() {
         $group_ids = self::get_ids( 'groups' );
         $columns = null;
         foreach ( $group_ids as $id ) {
@@ -286,23 +300,175 @@ class Disciple_Tools_Advanced_Metrics
         return $columns;
     }
 
+    public function get_groups_corr_data() {
+        $data = self::get_groups_data();
+        $output = null;
+
+        $corr = [];
+
+        // Get column names
+        $columns = [];
+        foreach ( $data as $key => $value ) {
+            $columns[] = $key;
+        }
+
+        foreach ( $columns as $col ) {
+            $col_length = count( $columns );
+            for ( $i = 0; $i < $col_length; $i++ ) {
+
+                // Don't get correlations for columns compared to themseleves
+                if ( $columns[$i] === $col ) {
+                    continue;
+                }
+
+                $corr_name = $col . ' vs ' . $columns[$i];
+                $corr[] = [
+                    'name' => $corr_name,
+                    'col_1' => $col,
+                    'col_2' => $columns[$i],
+                    'corr' => self::get_corr( $data[$col], $data[ $columns[$i] ] )
+                ];
+            }
+        }
+        return $corr;
+    }
+
+    public function get_groups_insights() {
+        $correlations = self::get_groups_corr_data();
+        $insights = [];
+        $already_mentioned = []; // This array will prevent a/b correlations to show up if its b/a counterpart correlation has already been mentioned.
+
+        $definitions_nouns = [
+            'status' => 'groups that are active',
+            'member_count' => 'the amount of group members',
+            'leader_count' => 'the amount of group leaders',
+            'male_count' => 'the amount of men in a group',
+            'female_count' => 'the amount of women in a group',
+            'male_leaders' => 'the amount of male leaders in a group',
+            'female_leaders' => 'the amount of female leaders in a group',
+            'group_health_practices' => 'the amount of group health elements being practiced',
+            'church_baptism' => 'groups that are baptising people',
+            'church_bible' => 'groups that read the Bible',
+            'church_commitment' => 'groups that have committed to identify themselves as a church',
+            'church_communion' => 'groups that partake in communion',
+            'church_fellowship' => 'groups in which the members have fellowship amongst themselves',
+            'church_giving' => 'groups that give',
+            'church_leaders' => 'groups that are forming leaders',
+            'church_praise' => 'groups that praise together',
+            'church_prayer' => 'groups that pray together',
+            'church_sharing' => 'groups that share the gospel',
+        ];
+
+        $definitions_verbs = [
+            'status' => 'are active',
+            'member_count' => 'have many members',
+            'leader_count' => 'have many leaders',
+            'male_count' => 'have many men',
+            'female_count' => 'have many women',
+            'male_leaders' => 'have male leaders',
+            'female_leaders' => 'have female leaders',
+            'group_health_practices' => 'practice group health elements',
+            'church_baptism' => 'baptise people',
+            'church_bible' => 'read the Bible',
+            'church_commitment' => 'committed to identify themselves as a church',
+            'church_communion' => 'partake in communion',
+            'church_fellowship' => 'have fellowship amongst themselves',
+            'church_giving' => 'give',
+            'church_leaders' => 'form leaders',
+            'church_praise' => 'praise together',
+            'church_prayer' => 'pray together',
+            'church_sharing' => 'share the gospel',
+        ];
+
+        foreach ( $correlations as $corr ) {
+            $corr_hash = [];
+            foreach ( $corr as $key => $value ) {
+                $corr_hash[] = $corr['col_1'];
+                $corr_hash[] = $corr['col_2'];
+                sort( $corr_hash );
+                if ( ! in_array( $corr_hash, $already_mentioned ) ) {
+                    if ( $key === 'corr' && $value === 1 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' always ' . $definitions_verbs[ $corr['col_2'] ];
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value !== 1 && $value >= 0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' almost always ' . $definitions_verbs[ $corr['col_2'] ];
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value >= 0.75 && $value < 0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' usually ' . $definitions_verbs[ $corr['col_2'] ];
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value >= -0.75 && $value < -0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' seldom ' . $definitions_verbs[ $corr['col_2'] ];
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value !== -1 && $value <= -0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' almost never ' . $definitions_verbs[ $corr['col_2'] ];
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key ==='corr' && $value === -1 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' never ' . $definitions_verbs[ $corr['col_2'] ];
+                        $already_mentioned[] = $corr_hash;
+                    }
+                }
+            }
+        }
+        var_export( $insights );
+        die();
+        return $insights;
+    }
+
+    // Get Pearson Correlation between two variables
+    private function get_corr( $x, $y ) {
+        if ( count( $x ) !== count( $y ) ) {
+            return -1;
+        }
+
+        $x = array_values( $x );
+        $y = array_values( $y );
+        $xs = array_sum( $x ) / count( $x );
+        $ys = array_sum( $y ) / count( $y );
+        $a = 0;
+        $bx = 0;
+        $by = 0;
+
+        $x_length = count( $x );
+        for ( $i = 0; $i < $x_length; $i++ ) {
+            $xr =$x[$i] - $xs;
+            $yr =$y[$i] - $ys;
+            $a += $xr * $yr;
+            $bx += pow( $xr, 2 );
+            $by += pow( $yr, 2 );
+        }
+
+        $b = sqrt( $bx * $by );
+        if ( $b == 0 ) {
+            return 0;
+        }
+        return $a /$b;
+    }
 
     // Check how many health metrics are being practiced by a group
-    private function get_health_metrics_count( $id ) {
+    private function get_health_metrics_count( $group_id ) {
         global $wpdb;
         $response = $wpdb->get_results(
             $wpdb->prepare( "
                 SELECT meta_value
                 FROM $wpdb->postmeta
-                WHERE meta_key = 'health_metrics' AND post_id = %d", $id)
+                WHERE meta_key = 'health_metrics' AND post_id = %d", $group_id)
         );
-
         $output = $wpdb->num_rows;
         return $output;
     }
 
     // Check to see if a health metric is being practiced by a group
-    private function get_health_metric_status( $id, $health_metric ) {
+    private function get_health_metric_status( $group_id, $health_metric ) {
         global $wpdb;
         $response = $wpdb->get_col(
             $wpdb->prepare("
@@ -311,7 +477,7 @@ class Disciple_Tools_Advanced_Metrics
                 WHERE meta_key = 'health_metrics'
                 AND meta_value = %s
                 AND post_id = %d;
-                ", $health_metric, $id )
+                ", $health_metric, $group_id )
         );
         $output = $wpdb->num_rows;
         return $output;
