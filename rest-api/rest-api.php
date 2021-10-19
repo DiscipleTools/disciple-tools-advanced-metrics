@@ -251,9 +251,16 @@ class Disciple_Tools_Advanced_Metrics
 
             // Get member count
             $member_count = self::get_postmeta_value( $id, 'member_count' );
-            $columns['member_count'][] = $member_count;
+            if ( $member_count === null ) {
+                $member_count = 0;
+            }
+            $columns['member_count'][] = intval( $member_count );
 
-            $columns['leader_count'][] = count( self::get_group_leaders( $id ) );
+            $leader_count = self::get_postmeta_value( $id, 'leader_count' );
+            if ( $leader_count === null ) {
+                $leader_count = 0;
+            }
+            $columns['leader_count'][] = intval( $leader_count );
 
             // Get number of male members
             $columns['male_count'][] = self::get_group_gender_count( $id, 'male' );
@@ -276,8 +283,6 @@ class Disciple_Tools_Advanced_Metrics
                 $columns[$health_metric][] = self::get_health_metric_status( $id, $health_metric );
             }
         }
-        var_export( $columns );
-        die();
         return $columns;
     }
 
@@ -312,21 +317,6 @@ class Disciple_Tools_Advanced_Metrics
         return $output;
     }
 
-    // Count the amount of leaders in a group
-    private function get_group_leaders( $group_id ) {
-        global $wpdb;
-        $leader_count = 0;
-
-        $response = $wpdb->get_col(
-            $wpdb->prepare( "
-                SELECT p2p_to
-                FROM $wpdb->p2p
-                WHERE p2p_type = 'groups_to_leaders'
-                AND p2p_from = %d", $group_id )
-        );
-        return $response;
-    }
-
     // Count the amount of men in a group
     private function get_group_gender_count( $group_id, $gender ) {
         global $wpdb;
@@ -355,6 +345,7 @@ class Disciple_Tools_Advanced_Metrics
         return $gender_count;
     }
 
+    // Get the ids for the members of a group
     private function get_group_members( $group_id ) {
         global $wpdb;
         $response = $wpdb->get_col(
@@ -364,6 +355,21 @@ class Disciple_Tools_Advanced_Metrics
                 WHERE p2p_type = 'contacts_to_groups'
                 AND p2p_to = %d", $group_id
             )
+        );
+        return $response;
+    }
+
+    // Get the ids for the leaders of a group
+    private function get_group_leaders( $group_id ) {
+        global $wpdb;
+        $leader_count = 0;
+
+        $response = $wpdb->get_col(
+            $wpdb->prepare( "
+                SELECT p2p_to
+                FROM $wpdb->p2p
+                WHERE p2p_type = 'groups_to_leaders'
+                AND p2p_from = %d", $group_id )
         );
         return $response;
     }
