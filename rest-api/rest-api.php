@@ -263,6 +263,12 @@ class Disciple_Tools_Advanced_Metrics
             }
             $columns['status'][] = $group_status;
 
+            // Get number of male members
+            $columns['male_count'][] = self::get_group_gender_count( $id, 'male' );
+
+            // Get number of female members
+            $columns['female_count'][] = self::get_group_gender_count( $id, 'female' );
+
             // Get member count
             $member_count = self::get_postmeta_value( $id, 'member_count' );
             if ( $member_count === null ) {
@@ -276,11 +282,13 @@ class Disciple_Tools_Advanced_Metrics
             }
             $columns['leader_count'][] = intval( $leader_count );
 
-            // Get number of male members
-            $columns['male_count'][] = self::get_group_gender_count( $id, 'male' );
 
-            // Get number of female members
-            $columns['female_count'][] = self::get_group_gender_count( $id, 'female' );
+
+            // Check if more men than women
+            $columns['more_men_than_women'][] = 1;
+
+            // Check if more women than men
+            $columns['more_women_than_men'][] = 0;
 
             // Get number of male leaders
             $columns['male_leaders'][] = self::get_group_leaders_gender_count( $id, 'male' );
@@ -297,13 +305,26 @@ class Disciple_Tools_Advanced_Metrics
                 $columns[$health_metric][] = self::get_health_metric_status( $id, $health_metric );
             }
         }
+
+        // Now that all group ids have cycled through, compare men member counts and women member counts.
+        $group_length = count( $group_ids );
+        for ( $i =0; $i < $group_length; $i++ ) {
+            if ( $columns['female_count'][$i] > $columns['male_count'][$i] ) {
+                $columns['more_women_than_men'][$i] = 1;
+                $columns['more_men_than_women'][$i] = 0;
+            }
+
+                // If men count and women count is tied, nobody has more than the other (John Madden explanation)
+            if ( $columns['female_count'][$i] == $columns['male_count'][$i] ) {
+                $columns['more_women_than_men'][$i] = 0;
+                $columns['more_men_than_women'][$i] = 0;
+            }
+        }
         return $columns;
     }
 
     public function get_groups_corr_data() {
         $data = self::get_groups_data();
-        $output = null;
-
         $corr = [];
 
         // Get column names
@@ -338,14 +359,16 @@ class Disciple_Tools_Advanced_Metrics
         $insights = [];
         $already_mentioned = []; // This array will prevent a/b correlations to show up if its b/a counterpart correlation has already been mentioned.
 
-        $definitions_nouns = [
+        $definitions = [
             'status' => 'groups that are active',
-            'member_count' => 'the amount of group members',
-            'leader_count' => 'the amount of group leaders',
-            'male_count' => 'the amount of men in a group',
-            'female_count' => 'the amount of women in a group',
-            'male_leaders' => 'the amount of male leaders in a group',
-            'female_leaders' => 'the amount of female leaders in a group',
+            'member_count' => 'groups with more members',
+            'leader_count' => 'groups with more leaders',
+            'male_count' => 'groups with lots of men',
+            'female_count' => 'groups with lots of women',
+            'more_men_than_women' => 'groups with more men than women',
+            'more_women_than_men' => 'groups with more women than men',
+            'male_leaders' => 'groups with lots of male leaders',
+            'female_leaders' => 'groups with lots of female leaders',
             'group_health_practices' => 'the amount of group health elements being practiced',
             'church_baptism' => 'groups that are baptising people',
             'church_bible' => 'groups that read the Bible',
@@ -365,6 +388,8 @@ class Disciple_Tools_Advanced_Metrics
             'leader_count' => 'have many leaders',
             'male_count' => 'have many men',
             'female_count' => 'have many women',
+            'more_men_than_women' => 'have more men than women',
+            'more_women_than_men' => 'have more women than men',
             'male_leaders' => 'have male leaders',
             'female_leaders' => 'have female leaders',
             'group_health_practices' => 'practice group health elements',
@@ -388,32 +413,32 @@ class Disciple_Tools_Advanced_Metrics
                 sort( $corr_hash );
                 if ( ! in_array( $corr_hash, $already_mentioned ) ) {
                     if ( $key === 'corr' && $value === 1 ) {
-                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' always ' . $definitions_verbs[ $corr['col_2'] ];
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' always ' . $definitions_verbs[ $corr['col_2'] ];
                         $already_mentioned[] = $corr_hash;
                     }
 
                     if ( $key === 'corr' && $value !== 1 && $value >= 0.9 ) {
-                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' almost always ' . $definitions_verbs[ $corr['col_2'] ];
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' almost always ' . $definitions_verbs[ $corr['col_2'] ];
                         $already_mentioned[] = $corr_hash;
                     }
 
                     if ( $key === 'corr' && $value >= 0.75 && $value < 0.9 ) {
-                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' usually ' . $definitions_verbs[ $corr['col_2'] ];
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' usually ' . $definitions_verbs[ $corr['col_2'] ];
                         $already_mentioned[] = $corr_hash;
                     }
 
                     if ( $key === 'corr' && $value >= -0.75 && $value < -0.9 ) {
-                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' seldom ' . $definitions_verbs[ $corr['col_2'] ];
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' seldom ' . $definitions_verbs[ $corr['col_2'] ];
                         $already_mentioned[] = $corr_hash;
                     }
 
                     if ( $key === 'corr' && $value !== -1 && $value <= -0.9 ) {
-                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' almost never ' . $definitions_verbs[ $corr['col_2'] ];
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' almost never ' . $definitions_verbs[ $corr['col_2'] ];
                         $already_mentioned[] = $corr_hash;
                     }
 
                     if ( $key ==='corr' && $value === -1 ) {
-                        $insights[] = 'In this particular movement, ' . $definitions_nouns[ $corr['col_1'] ] . ' never ' . $definitions_verbs[ $corr['col_2'] ];
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' never ' . $definitions_verbs[ $corr['col_2'] ];
                         $already_mentioned[] = $corr_hash;
                     }
                 }
