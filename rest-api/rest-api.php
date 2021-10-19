@@ -369,7 +369,7 @@ class Disciple_Tools_Advanced_Metrics
             'more_women_than_men' => 'groups with more women than men',
             'male_leaders' => 'groups with lots of male leaders',
             'female_leaders' => 'groups with lots of female leaders',
-            'group_health_practices' => 'the amount of group health elements being practiced',
+            'group_health_practices' => 'groups that practice many health elements',
             'church_baptism' => 'groups that are baptising people',
             'church_bible' => 'groups that read the Bible',
             'church_commitment' => 'groups that have committed to identify themselves as a church',
