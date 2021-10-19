@@ -41,13 +41,20 @@ class Disciple_Tools_Advanced_Metrics
                 'callback' => [ $this, 'get_leader_gender_ratio' ],
             ]
         );
+
+        register_rest_route(
+            $namespace, '/get_group_insights', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_group_insights' ],
+            ]
+        );
     }
 
 
     // Get the amount of men compared to women
     public function get_gender_ratio( WP_REST_Request $request ) {
         $output = null;
-        $contact_ids = self::get_contact_ids();
+        $contact_ids = self::get_ids( 'contacts' );
         $male_count = 0;
         $female_count = 0;
 
@@ -230,6 +237,141 @@ class Disciple_Tools_Advanced_Metrics
         return $output;
     }
 
+    // Use machine learning to find insights from group data
+    public function get_group_insights() {
+        $group_ids = self::get_ids( 'groups' );
+        $columns = null;
+        foreach ( $group_ids as $id ) {
+            // Get group status
+            $group_status = 0;
+            if ( self::get_postmeta_value( $id, 'group_status' ) === 'active' ) {
+                $group_status = 1;
+            }
+            $columns['status'][] = $group_status;
+
+            // Get member count
+            $member_count = self::get_postmeta_value( $id, 'member_count' );
+            $columns['member_count'][] = $member_count;
+
+            $columns['leader_count'][] = count( self::get_group_leaders( $id ) );
+
+            // Get number of male members
+            $columns['male_count'][] = self::get_group_gender_count( $id, 'male' );
+
+            // Get number of female members
+            $columns['female_count'][] = self::get_group_gender_count( $id, 'female' );
+
+            // Get number of male leaders
+            $columns['male_leaders'][] = self::get_group_leaders_gender_count( $id, 'male' );
+
+            // Get number of female leaders
+            $columns['female_leaders'][] = self::get_group_leaders_gender_count( $id, 'female' );
+
+            // Get group health data
+            $columns['group_health_practices'][] = self::get_health_metrics_count( $id );
+
+            $health_metrics = [ 'church_baptism', 'church_bible', 'church_commitment', 'church_communion', 'church_fellowship', 'church_giving', 'church_leaders', 'church_praise', 'church_prayer', 'church_sharing' ];
+
+            foreach ( $health_metrics as $health_metric ) {
+                $columns[$health_metric][] = self::get_health_metric_status( $id, $health_metric );
+            }
+        }
+        var_export( $columns );
+        die();
+        return $columns;
+    }
+
+
+    // Check how many health metrics are being practiced by a group
+    private function get_health_metrics_count( $id ) {
+        global $wpdb;
+        $response = $wpdb->get_results(
+            $wpdb->prepare( "
+                SELECT meta_value
+                FROM $wpdb->postmeta
+                WHERE meta_key = 'health_metrics' AND post_id = %d", $id)
+        );
+
+        $output = $wpdb->num_rows;
+        return $output;
+    }
+
+    // Check to see if a health metric is being practiced by a group
+    private function get_health_metric_status( $id, $health_metric ) {
+        global $wpdb;
+        $response = $wpdb->get_col(
+            $wpdb->prepare("
+                SELECT meta_value
+                FROM $wpdb->postmeta
+                WHERE meta_key = 'health_metrics'
+                AND meta_value = %s
+                AND post_id = %d;
+                ", $health_metric, $id )
+        );
+        $output = $wpdb->num_rows;
+        return $output;
+    }
+
+    // Count the amount of leaders in a group
+    private function get_group_leaders( $group_id ) {
+        global $wpdb;
+        $leader_count = 0;
+
+        $response = $wpdb->get_col(
+            $wpdb->prepare( "
+                SELECT p2p_to
+                FROM $wpdb->p2p
+                WHERE p2p_type = 'groups_to_leaders'
+                AND p2p_from = %d", $group_id )
+        );
+        return $response;
+    }
+
+    // Count the amount of men in a group
+    private function get_group_gender_count( $group_id, $gender ) {
+        global $wpdb;
+        $gender_count = 0;
+        $member_ids = self::get_group_members( $group_id );
+
+        foreach ( $member_ids as $id ) {
+            if ( self::get_postmeta_value( $id, 'gender' ) === $gender ) {
+                $gender_count ++;
+            }
+        }
+        return $gender_count;
+    }
+
+    // Counts the amount of group leaders pertaining to a specific gender
+    private function get_group_leaders_gender_count( $group_id, $gender ) {
+        global $wpdb;
+        $gender_count = 0;
+        $leader_ids = self::get_group_leaders( $group_id );
+
+        foreach ( $leader_ids as $id ) {
+            if ( self::get_postmeta_value( $id, 'gender' ) === $gender ) {
+                $gender_count ++;
+            }
+        }
+        return $gender_count;
+    }
+
+    private function get_group_members( $group_id ) {
+        global $wpdb;
+        $response = $wpdb->get_col(
+            $wpdb->prepare( "
+                SELECT p2p_from
+                FROM $wpdb->p2p
+                WHERE p2p_type = 'contacts_to_groups'
+                AND p2p_to = %d", $group_id
+            )
+        );
+        return $response;
+    }
+
+    /*
+     * AUXILIARY FUNCTIONS
+     */
+
 
     // Check if the wording for a metric should be plural or singular, according to the metric count
     private function get_text( $text_singular, $text_plural, $metric ) {
@@ -239,7 +381,6 @@ class Disciple_Tools_Advanced_Metrics
         }
         return $output;
     }
-
 
     private function get_factors( $num ) {
         $factors = [];
@@ -260,17 +401,15 @@ class Disciple_Tools_Advanced_Metrics
     }
 
 
-    private function get_contact_ids() {
+    private function get_ids( $post_type ) {
         global $wpdb;
-        $response = $wpdb->get_col( "
+        $response = $wpdb->get_col( $wpdb->prepare( "
             SELECT ID
             FROM wp_posts
-            WHERE post_type = 'contacts';
-            " );
+            WHERE post_type = %s;
+            ", $post_type ) );
         return $response;
     }
-
-
 
     private function get_meta_value( $post_id, $column_name ) {
         global $wpdb;
@@ -281,8 +420,6 @@ class Disciple_Tools_Advanced_Metrics
             ", $post_id ) );
         return $response;
     }
-
-
 
     private function get_postmeta_value( $post_id, $meta_key ) {
         global $wpdb;
@@ -302,10 +439,11 @@ class Disciple_Tools_Advanced_Metrics
         }
         return self::$_instance;
     } // End instance()
+
     public function __construct() {
         add_action( 'rest_api_init', [ $this, 'add_api_routes' ] );
     }
-    public function has_permission(){
+    public function has_permission() {
         $pass = false;
         foreach ( $this->permissions as $permission ){
             if ( current_user_can( $permission ) ){
