@@ -50,9 +50,9 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
-            $namespace, '/get_groups_corr_data', [
+            $namespace, '/get_corr_data/(?P<post_type>\w+)', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_groups_corr_data' ],
+                'callback' => [ $this, 'get_corr_data' ],
             ]
         );
 
@@ -60,6 +60,13 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_groups_insights', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_groups_insights' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get_contacts_data', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_contacts_data' ],
             ]
         );
     }
@@ -114,7 +121,6 @@ class Disciple_Tools_Advanced_Metrics
             return $output;
         }
     }
-
 
     // Get the amount of male leaders compared to female leaders
     public function get_leader_gender_ratio( WP_REST_Request $request ) {
@@ -191,7 +197,6 @@ class Disciple_Tools_Advanced_Metrics
         return $output;
     }
 
-
     // Get the amount of Bible readers for every Bible owner
     public function get_bible_reading_ratio( WP_REST_Request $request ) {
         global $wpdb;
@@ -254,7 +259,7 @@ class Disciple_Tools_Advanced_Metrics
     // Use machine learning to find insights from group data
     public function get_groups_data() {
         $group_ids = self::get_ids( 'groups' );
-        $columns = null;
+        $columns = [];
         foreach ( $group_ids as $id ) {
             // Get group status
             $group_status = 0;
@@ -281,8 +286,6 @@ class Disciple_Tools_Advanced_Metrics
                 $leader_count = 0;
             }
             $columns['leader_count'][] = intval( $leader_count );
-
-
 
             // Check if more men than women
             $columns['more_men_than_women'][] = 1;
@@ -323,8 +326,24 @@ class Disciple_Tools_Advanced_Metrics
         return $columns;
     }
 
-    public function get_groups_corr_data() {
-        $data = self::get_groups_data();
+    public function get_corr_data( WP_REST_Request $request ) {
+        $params = $request->get_params();
+        $post_type = esc_sql( $request['post_type'] );
+
+        switch ( $post_type ) {
+            case 'groups':
+                $data = self::get_groups_data();
+                break;
+
+            case 'contacts':
+                $data = self::get_contacts_data();
+                break;
+
+            default:
+                return 'error: unknown post_type';
+                break;
+        }
+
         $corr = [];
 
         // Get column names
@@ -565,6 +584,96 @@ class Disciple_Tools_Advanced_Metrics
         return $response;
     }
 
+    public function get_contacts_data() {
+        $contact_ids = self::get_ids( 'contacts' );
+        $columns = [];
+
+        // Get contact gender
+        foreach ( $contact_ids as $id ) {
+            $contact_gender = self::get_postmeta_value( $id, 'gender' );
+
+            switch ( $contact_gender ) {
+                case 'male':
+                    $contact_gender = 1;
+                    break;
+
+                case 'female':
+                    $contact_gender = -1;
+                    break;
+
+                default:
+                    $contact_gender = 0;
+                    break;
+            }
+
+            $columns[$id]['gender'] = $contact_gender;
+
+            // One-hot these meta_values
+            $relevant_post_metas = [
+                'milestone_has_bible',
+                'milestone_reading_bible',
+                'milestone_belief',
+                'milestone_can_share',
+                'milestone_sharing',
+                'milestone_baptized',
+                'milestone_baptizing',
+                'milestone_in_group',
+                'milestone_planting'
+            ];
+
+            // Run through all relevant post metas and return 1 if it's set, else 0
+            foreach ( $relevant_post_metas as $post_meta ) {
+                $post_meta_result = 0;
+                $curr_meta = self::check_postmeta_value_exists( $id, $post_meta );
+                if ( ! empty( $curr_meta ) ) {
+                    $post_meta_result = 1;
+                }
+                $columns[$id][$post_meta] = $post_meta_result;
+            }
+
+            // One-hot these meta_values
+            $columns[$id]['faith_status_seeker'] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'seeker' );
+            $columns[$id]['faith_status_believer'] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'believer' );
+            $columns[$id]['faith_status_leader'] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'leader' );
+            $columns[$id]['contact_type_user'] = self::check_postmeta_key_value_exists( $id, 'type', 'user' );
+            $columns[$id]['contact_type_personal'] = self::check_postmeta_key_value_exists( $id, 'type', 'personal' );
+            $columns[$id]['contact_type_access'] = self::check_postmeta_key_value_exists( $id, 'type', 'access' );
+            $columns[$id]['contact_type_placeholder'] = self::check_postmeta_key_value_exists( $id, 'type', 'placeholder' );
+            $columns[$id]['contact_type_create_update_contacts'] = self::check_postmeta_key_value_exists( $id, 'type', 'create_update_contacts' );
+
+            $columns[$id]['age_under_18'] = 0;
+            $columns[$id]['age_18_to_25'] = 0;
+            $columns[$id]['age_26_to_40'] = 0;
+            $columns[$id]['over_40'] = 0;
+
+            // Due to encoding issues, the DB shows different values for the same age group.
+            // This checks if a value appears for any of both encodings and returns 1 if true, else 0.
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<19' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;19' ) ) !== 0 ) {
+                $columns[$id]['age_under_18'] = 1;
+
+            }
+
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<26' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;26' ) ) !== 0 ) {
+                $columns[$id]['age_18_to_25'] = 1;
+
+            }
+
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;41' ) ) !== 0 ) {
+                $columns[$id]['age_26_to_40'] = 1;
+
+            }
+
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '>41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&gt;41' ) ) !== 0 ) {
+                $columns[$id]['over_40'] = 1;
+
+            }
+
+            $contact_type = self::get_postmeta_value( $id, 'type' );
+            $columns[$id]['contact_type'] = self::get_encoded_label( 'type', $contact_type );
+        }
+        return $columns;
+    }
+
     /*
      * AUXILIARY FUNCTIONS
      */
@@ -600,33 +709,92 @@ class Disciple_Tools_Advanced_Metrics
 
     private function get_ids( $post_type ) {
         global $wpdb;
-        $response = $wpdb->get_col( $wpdb->prepare( "
-            SELECT ID
-            FROM wp_posts
-            WHERE post_type = %s;
-            ", $post_type ) );
+        $response = $wpdb->get_col(
+            $wpdb->prepare( "
+                SELECT ID
+                FROM wp_posts
+                WHERE post_type = %s;", $post_type )
+        );
         return $response;
     }
 
     private function get_meta_value( $post_id, $column_name ) {
         global $wpdb;
-        $response = $wpdb->get_var( $wpdb->prepare( "
-            SELECT $column_name
-            FROM wp_posts
-            WHERE ID = %s;
-            ", $post_id ) );
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+                SELECT $column_name
+                FROM wp_posts
+                WHERE ID = %s;", $post_id )
+        );
         return $response;
     }
 
     private function get_postmeta_value( $post_id, $meta_key ) {
         global $wpdb;
-        $response = $wpdb->get_var( $wpdb->prepare( "
-            SELECT meta_value
-            FROM $wpdb->postmeta
-            WHERE post_id = %s
-            AND meta_key = %s;
-            ", $post_id, $meta_key ) );
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+                SELECT meta_value
+                FROM $wpdb->postmeta
+                WHERE post_id = %d
+                AND meta_key = %s;", $post_id, $meta_key )
+        );
         return $response;
+    }
+
+    private function check_postmeta_value_exists( $post_id, $meta_value ) {
+        global $wpdb;
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+                SELECT meta_value
+                FROM $wpdb->postmeta
+                WHERE post_id = %d
+                AND meta_value = %s;", $post_id, $meta_value )
+        );
+
+        $output = 0;
+        if ( $wpdb->num_rows > 0 ) {
+            $output = 1;
+        }
+
+        return $output;
+    }
+
+    private function check_postmeta_key_value_exists( $post_id, $meta_key, $meta_value ) {
+        global $wpdb;
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+                SELECT meta_key, meta_value
+                FROM $wpdb->postmeta
+                WHERE post_id = %d
+                AND meta_key = %s
+                AND meta_value = %s;", $post_id, $meta_key, $meta_value )
+        );
+
+        $output = 0;
+        if ( $wpdb->num_rows > 0 ) {
+            $output = 1;
+        }
+
+        return $output;
+    }
+
+    // Get encoded label from postmeta key
+    // This function is currently not being used as one-hotting is considered more efficient for correlating the data
+    private function get_encoded_label( $meta_key, $meta_value ) {
+        global $wpdb;
+
+        $distinct_values = $wpdb->get_col(
+            $wpdb->prepare( "
+                SELECT DISTINCT( meta_value )
+                FROM $wpdb->postmeta
+                WHERE meta_key = %s;", $meta_key )
+        );
+        // Get all label types
+        asort( $distinct_values );
+        $distinct_values = array_values( $distinct_values );
+
+        $encoded_label = array_search( $meta_value, $distinct_values );
+        return $encoded_label;
     }
 
     private static $_instance = null;
