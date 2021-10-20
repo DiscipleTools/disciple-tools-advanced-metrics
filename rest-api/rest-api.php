@@ -50,9 +50,16 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
-            $namespace, '/get_corr_data/(?P<post_type>\w+)', [
+            $namespace, '/get_groups_corr_data', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_corr_data' ],
+                'callback' => [ $this, 'get_groups_corr_data' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get_contacts_corr_data', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_contacts_corr_data' ],
             ]
         );
 
@@ -67,6 +74,13 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_contacts_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_contacts_data' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get_contacts_insights', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_contacts_insights' ],
             ]
         );
     }
@@ -326,24 +340,7 @@ class Disciple_Tools_Advanced_Metrics
         return $columns;
     }
 
-    public function get_corr_data( WP_REST_Request $request ) {
-        $params = $request->get_params();
-        $post_type = esc_sql( $request['post_type'] );
-
-        switch ( $post_type ) {
-            case 'groups':
-                $data = self::get_groups_data();
-                break;
-
-            case 'contacts':
-                $data = self::get_contacts_data();
-                break;
-
-            default:
-                return 'error: unknown post_type';
-                break;
-        }
-
+    public function get_corr_data( $data ) {
         $corr = [];
 
         // Get column names
@@ -371,6 +368,22 @@ class Disciple_Tools_Advanced_Metrics
             }
         }
         return $corr;
+    }
+
+    public function get_groups_corr_data() {
+        $data = self::get_groups_data();
+        $groups_corr_data = self::get_corr_data( $data );
+        return $groups_corr_data;
+    }
+
+    public function get_contacts_corr_data() {
+        $data = self::get_contacts_data();
+        $contacts_corr_data = self::get_corr_data( $data );
+        return $contacts_corr_data;
+    }
+
+    public function get_contacts_insights() {
+        $correlations = self::get_contacts_corr_data();
     }
 
     public function get_groups_insights() {
@@ -650,22 +663,18 @@ class Disciple_Tools_Advanced_Metrics
             // This checks if a value appears for any of both encodings and returns 1 if true, else 0.
             if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<19' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;19' ) ) !== 0 ) {
                 $columns[$id]['age_under_18'] = 1;
-
             }
 
             if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<26' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;26' ) ) !== 0 ) {
                 $columns[$id]['age_18_to_25'] = 1;
-
             }
 
             if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;41' ) ) !== 0 ) {
                 $columns[$id]['age_26_to_40'] = 1;
-
             }
 
             if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '>41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&gt;41' ) ) !== 0 ) {
                 $columns[$id]['over_40'] = 1;
-
             }
 
             $contact_type = self::get_postmeta_value( $id, 'type' );
