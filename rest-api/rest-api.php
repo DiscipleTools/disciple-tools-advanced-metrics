@@ -129,7 +129,7 @@ class Disciple_Tools_Advanced_Metrics
 
             $male_text = self::get_text( 'man', 'men', $male_ratio );
             $female_text = self::get_text( 'woman', 'women', $female_ratio );
-            $is_text = self::get_text( 'is', 'are', $female_ratio );
+            $is_text = self::get_text( 'is', 'are', $male_ratio );
 
             $output['description'] = "There $is_text $male_ratio $male_text for every $female_ratio $female_text.";
             return $output;
@@ -270,8 +270,14 @@ class Disciple_Tools_Advanced_Metrics
         return $output;
     }
 
-    // Use machine learning to find insights from group data
+    // Get relevant data for groups
     public function get_groups_data() {
+        //Check for cached data
+        $cached_data = get_transient( 'dt_advanced_metrics_groups' );
+        if ( $cached_data ) {
+            return $cached_data;
+        }
+
         $group_ids = self::get_ids( 'groups' );
         $columns = [];
         foreach ( $group_ids as $id ) {
@@ -337,9 +343,109 @@ class Disciple_Tools_Advanced_Metrics
                 $columns['more_men_than_women'][$i] = 0;
             }
         }
+
+        // Cache the data
+        set_transient( 'dt_advanced_metrics_groups', $columns, 60 *60 *24 );
         return $columns;
     }
 
+    // Get relevant data for contacts
+    public function get_contacts_data() {
+        //Check for cached data
+        $cached_data = get_transient( 'dt_advanced_metrics_contacts' );
+        if ( $cached_data ) {
+            return $cached_data;
+        }
+
+        $contact_ids = self::get_ids( 'contacts' );
+        $columns = [];
+
+        // Get contact gender
+        foreach ( $contact_ids as $id ) {
+            $contact_gender = self::get_postmeta_value( $id, 'gender' );
+
+            switch ( $contact_gender ) {
+                case 'male':
+                    $contact_gender = 1;
+                    break;
+
+                case 'female':
+                    $contact_gender = -1;
+                    break;
+
+                default:
+                    $contact_gender = 0;
+                    break;
+            }
+
+            $columns['gender'][] = $contact_gender;
+
+            // One-hot these meta_values
+            $relevant_post_metas = [
+                'milestone_has_bible',
+                'milestone_reading_bible',
+                'milestone_belief',
+                'milestone_can_share',
+                'milestone_sharing',
+                'milestone_baptized',
+                'milestone_baptizing',
+                'milestone_in_group',
+                'milestone_planting'
+            ];
+
+            // Run through all relevant post metas and return 1 if it's set, else 0
+            foreach ( $relevant_post_metas as $post_meta ) {
+                $post_meta_result = 0;
+                $curr_meta = self::check_postmeta_value_exists( $id, $post_meta );
+                if ( ! empty( $curr_meta ) ) {
+                    $post_meta_result = 1;
+                }
+                $columns[$post_meta][] = $post_meta_result;
+            }
+
+            // One-hot these meta_values
+            $columns['faith_status_seeker'][] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'seeker' );
+            $columns['faith_status_believer'][] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'believer' );
+            $columns['faith_status_leader'][] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'leader' );
+            $columns['contact_type_user'][] = self::check_postmeta_key_value_exists( $id, 'type', 'user' );
+            $columns['contact_type_personal'][] = self::check_postmeta_key_value_exists( $id, 'type', 'personal' );
+            $columns['contact_type_access'][] = self::check_postmeta_key_value_exists( $id, 'type', 'access' );
+            $columns['contact_type_placeholder'][] = self::check_postmeta_key_value_exists( $id, 'type', 'placeholder' );
+            $columns['contact_type_create_update_contacts'][] = self::check_postmeta_key_value_exists( $id, 'type', 'create_update_contacts' );
+
+            $columns['age_under_18'][] = 0;
+            $columns['age_18_to_25'][] = 0;
+            $columns['age_26_to_40'][] = 0;
+            $columns['over_40'][] = 0;
+
+            // Due to encoding issues, the DB shows different values for the same age group.
+            // This checks if a value appears for any of both encodings and returns 1 if true, else 0.
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<19' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;19' ) ) !== 0 ) {
+                $columns['age_under_18'][] = 1;
+            }
+
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<26' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;26' ) ) !== 0 ) {
+                $columns['age_18_to_25'][] = 1;
+            }
+
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;41' ) ) !== 0 ) {
+                $columns['age_26_to_40'][] = 1;
+            }
+
+            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '>41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&gt;41' ) ) !== 0 ) {
+                $columns['over_40'][] = 1;
+            }
+
+            $contact_type = self::get_postmeta_value( $id, 'type' );
+            $columns['contact_type'][] = self::get_encoded_label( 'type', $contact_type );
+        }
+
+        // Cache the data
+        set_transient( 'dt_advanced_metrics_contacts', $columns, 60 *60 *24 );
+        return $columns;
+    }
+
+    // Returns the correlation values for a dataset
     public function get_corr_data( $data ) {
         $corr = [];
 
@@ -370,20 +476,37 @@ class Disciple_Tools_Advanced_Metrics
         return $corr;
     }
 
+    // Gets the correlated data for all data columns
     public function get_groups_corr_data() {
+        //Check for cached data
+        $cached_data = get_transient( 'dt_advanced_metrics_groups_corr' );
+        if ( $cached_data ) {
+            return $cached_data;
+        }
+
         $data = self::get_groups_data();
         $groups_corr_data = self::get_corr_data( $data );
+
+        // Cache the data
+        set_transient( 'dt_advanced_metrics_groups_corr', $groups_corr_data, 60 *60 *24 );
+
         return $groups_corr_data;
     }
 
     public function get_contacts_corr_data() {
+        //Check for cached data
+        $cached_data = get_transient( 'dt_advanced_metrics_contacts_corr' );
+        if ( $cached_data ) {
+            return $cached_data;
+        }
+
         $data = self::get_contacts_data();
         $contacts_corr_data = self::get_corr_data( $data );
-        return $contacts_corr_data;
-    }
 
-    public function get_contacts_insights() {
-        $correlations = self::get_contacts_corr_data();
+        // Cache the data
+        set_transient( 'dt_advanced_metrics_contacts_corr', $contacts_corr_data, 60 *60 *24 );
+
+        return $contacts_corr_data;
     }
 
     public function get_groups_insights() {
@@ -437,6 +560,107 @@ class Disciple_Tools_Advanced_Metrics
             'church_sharing' => 'share the gospel',
         ];
 
+
+        foreach ( $correlations as $corr ) {
+            $corr_hash = [];
+            foreach ( $corr as $key => $value ) {
+                $corr_hash[] = $corr['col_1'];
+                $corr_hash[] = $corr['col_2'];
+                sort( $corr_hash );
+                if ( ! in_array( $corr_hash, $already_mentioned ) ) {
+                    if ( $key === 'corr' && $value === 1 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' always ' . $definitions_verbs[ $corr['col_2'] ] . '.';
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value !== 1 && $value >= 0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' almost always ' . $definitions_verbs[ $corr['col_2'] ] . '.';
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value >= 0.75 && $value < 0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' usually ' . $definitions_verbs[ $corr['col_2'] ] . '.';
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value >= -0.75 && $value < -0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' seldom ' . $definitions_verbs[ $corr['col_2'] ] . '.';
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key === 'corr' && $value !== -1 && $value <= -0.9 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' almost never ' . $definitions_verbs[ $corr['col_2'] ] . '.';
+                        $already_mentioned[] = $corr_hash;
+                    }
+
+                    if ( $key ==='corr' && $value === -1 ) {
+                        $insights[] = 'In this particular movement, ' . $definitions[ $corr['col_1'] ] . ' never ' . $definitions_verbs[ $corr['col_2'] ] . '.';
+                        $already_mentioned[] = $corr_hash;
+                    }
+                }
+            }
+        }
+
+        return $insights;
+    }
+
+    public function get_contacts_insights() {
+        $correlations = self::get_contacts_corr_data();
+        $insights = [];
+        $already_mentioned = []; // This array will prevent a/b correlations to show up if its b/a counterpart correlation has already been mentioned.
+
+        $definitions = [
+            'gender' => 'contact gender',
+            'milestone_has_bible' => 'contacts that have a Bible',
+            'milestone_reading_bible' => 'contacts that read their Bible',
+            'milestone_belief' => 'contacts that state belief',
+            'milestone_can_share' => 'contacts that can share the gospel or a testimony',
+            'milestone_sharing' => 'contacts that are sharing the gospel or a testimony',
+            'milestone_baptized' => 'contacts that are baptized',
+            'milestone_baptizing' => 'contacts that are baptizing others',
+            'milestone_in_group' => 'contacts that are in a group or church',
+            'milestone_planting' => 'contacts that are planting churches',
+            'faith_status_seeker' => 'contacts that are in a spiritual search',
+            'faith_status_believer' => 'contacts that are believers',
+            'faith_status_leader' => 'spiritual leaders',
+            'contact_type_user' => 'DT system users',
+            'contact_type_personal' => 'DT system personal contacts',
+            'contact_type_access' => 'DT system access contacts',
+            'contact_type_placeholder' => 'DT system placeholder contacts',
+            'contact_type_create_update_contacts' => 'DT system create update contacts',
+            'age_under_18' => 'contacts under the age of 18',
+            'age_18_to_25' => 'contacts between the age of 18 and 25',
+            'age_26_to_40' => 'contacts between the age of 26 and 40',
+            'over_40' => 'contacts over the age of 40',
+            'contact_type' => 'contact types',
+        ];
+
+        $definitions_verbs = [
+            'gender' => 'contact gender',
+            'milestone_has_bible' => 'have a Bible',
+            'milestone_reading_bible' => 'read their Bible',
+            'milestone_belief' => 'state belief',
+            'milestone_can_share' => 'can share the gospel or a testimony',
+            'milestone_sharing' => 'are sharing the gospel or a testimony',
+            'milestone_baptized' => 'are baptized',
+            'milestone_baptizing' => 'are baptizing others',
+            'milestone_in_group' => 'are in a group or church',
+            'milestone_planting' => 'are planting churches',
+            'faith_status_seeker' => 'are in a spiritual search',
+            'faith_status_believer' => 'are believers',
+            'faith_status_leader' => 'are spiritual leaders',
+            'contact_type_user' => 'DT system users',
+            'contact_type_personal' => 'DT system personal contacts',
+            'contact_type_access' => 'DT system access contacts',
+            'contact_type_placeholder' => 'DT system placeholder contacts',
+            'contact_type_create_update_contacts' => 'DT system create update contacts',
+            'age_under_18' => 'are under the age of 18',
+            'age_18_to_25' => 'are between the age of 18 and 25',
+            'age_26_to_40' => 'are between the age of 26 and 40',
+            'over_40' => 'are over the age of 40',
+            'contact_type' => 'are contact types',
+        ];
+
         foreach ( $correlations as $corr ) {
             $corr_hash = [];
             foreach ( $corr as $key => $value ) {
@@ -476,8 +700,6 @@ class Disciple_Tools_Advanced_Metrics
                 }
             }
         }
-        var_export( $insights );
-        die();
         return $insights;
     }
 
@@ -595,92 +817,6 @@ class Disciple_Tools_Advanced_Metrics
                 AND p2p_from = %d", $group_id )
         );
         return $response;
-    }
-
-    public function get_contacts_data() {
-        $contact_ids = self::get_ids( 'contacts' );
-        $columns = [];
-
-        // Get contact gender
-        foreach ( $contact_ids as $id ) {
-            $contact_gender = self::get_postmeta_value( $id, 'gender' );
-
-            switch ( $contact_gender ) {
-                case 'male':
-                    $contact_gender = 1;
-                    break;
-
-                case 'female':
-                    $contact_gender = -1;
-                    break;
-
-                default:
-                    $contact_gender = 0;
-                    break;
-            }
-
-            $columns[$id]['gender'] = $contact_gender;
-
-            // One-hot these meta_values
-            $relevant_post_metas = [
-                'milestone_has_bible',
-                'milestone_reading_bible',
-                'milestone_belief',
-                'milestone_can_share',
-                'milestone_sharing',
-                'milestone_baptized',
-                'milestone_baptizing',
-                'milestone_in_group',
-                'milestone_planting'
-            ];
-
-            // Run through all relevant post metas and return 1 if it's set, else 0
-            foreach ( $relevant_post_metas as $post_meta ) {
-                $post_meta_result = 0;
-                $curr_meta = self::check_postmeta_value_exists( $id, $post_meta );
-                if ( ! empty( $curr_meta ) ) {
-                    $post_meta_result = 1;
-                }
-                $columns[$id][$post_meta] = $post_meta_result;
-            }
-
-            // One-hot these meta_values
-            $columns[$id]['faith_status_seeker'] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'seeker' );
-            $columns[$id]['faith_status_believer'] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'believer' );
-            $columns[$id]['faith_status_leader'] = self::check_postmeta_key_value_exists( $id, 'faith_status', 'leader' );
-            $columns[$id]['contact_type_user'] = self::check_postmeta_key_value_exists( $id, 'type', 'user' );
-            $columns[$id]['contact_type_personal'] = self::check_postmeta_key_value_exists( $id, 'type', 'personal' );
-            $columns[$id]['contact_type_access'] = self::check_postmeta_key_value_exists( $id, 'type', 'access' );
-            $columns[$id]['contact_type_placeholder'] = self::check_postmeta_key_value_exists( $id, 'type', 'placeholder' );
-            $columns[$id]['contact_type_create_update_contacts'] = self::check_postmeta_key_value_exists( $id, 'type', 'create_update_contacts' );
-
-            $columns[$id]['age_under_18'] = 0;
-            $columns[$id]['age_18_to_25'] = 0;
-            $columns[$id]['age_26_to_40'] = 0;
-            $columns[$id]['over_40'] = 0;
-
-            // Due to encoding issues, the DB shows different values for the same age group.
-            // This checks if a value appears for any of both encodings and returns 1 if true, else 0.
-            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<19' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;19' ) ) !== 0 ) {
-                $columns[$id]['age_under_18'] = 1;
-            }
-
-            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<26' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;26' ) ) !== 0 ) {
-                $columns[$id]['age_18_to_25'] = 1;
-            }
-
-            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '<41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&lt;41' ) ) !== 0 ) {
-                $columns[$id]['age_26_to_40'] = 1;
-            }
-
-            if ( intval( self::check_postmeta_key_value_exists( $id, 'age', '>41' ) ) + intval( self::check_postmeta_key_value_exists( $id, 'age', '&gt;41' ) ) !== 0 ) {
-                $columns[$id]['over_40'] = 1;
-            }
-
-            $contact_type = self::get_postmeta_value( $id, 'type' );
-            $columns[$id]['contact_type'] = self::get_encoded_label( 'type', $contact_type );
-        }
-        return $columns;
     }
 
     /*
