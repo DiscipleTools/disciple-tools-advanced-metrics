@@ -83,6 +83,13 @@ class Disciple_Tools_Advanced_Metrics
                 'callback' => [ $this, 'get_contacts_insights' ],
             ]
         );
+
+        register_rest_route(
+            $namespace, '/get_average_contact_data', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_average_contact_data' ],
+            ]
+        );
     }
 
 
@@ -703,34 +710,48 @@ class Disciple_Tools_Advanced_Metrics
         return $insights;
     }
 
-    // Get Pearson Correlation between two variables
-    private function get_corr( $x, $y ) {
-        if ( count( $x ) !== count( $y ) ) {
-            return -1;
-        }
+    // Get the average contact data in order to compare it to a specific contact's progress
+    public function get_average_contact_data() {
+        $contact_ids = self::get_ids( 'contacts' );
+        $all_elapsed_times = null;
+        $output = null;
 
-        $x = array_values( $x );
-        $y = array_values( $y );
-        $xs = array_sum( $x ) / count( $x );
-        $ys = array_sum( $y ) / count( $y );
-        $a = 0;
-        $bx = 0;
-        $by = 0;
-
-        $x_length = count( $x );
-        for ( $i = 0; $i < $x_length; $i++ ) {
-            $xr =$x[$i] - $xs;
-            $yr =$y[$i] - $ys;
-            $a += $xr * $yr;
-            $bx += pow( $xr, 2 );
-            $by += pow( $yr, 2 );
+        foreach ( $contact_ids as $id ) {
+            $start_date = self::get_contact_creation_date( $id );
+            $end_date = self::get_activity_date( $id, 'Added Faith Milestones: Has Bible' );
+            $elapsed_seconds = self::elapsed_seconds( $start_date, $end_date );
+            $all_elapsed_seconds[] = self::elapsed_seconds( $start_date, $end_date );
         }
+        $all_elapsed_seconds = array_filter( $all_elapsed_seconds );
+        $avg_elapsed_seconds = array_sum( $all_elapsed_seconds ) / count( $all_elapsed_seconds );
+        return self::seconds_to_time( $avg_elapsed_seconds );
+    }
 
-        $b = sqrt( $bx * $by );
-        if ( $b == 0 ) {
-            return 0;
+    private function get_contact_creation_date( $contact_id ) {
+        global $wpdb;
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+            SELECT post_date FROM
+            $wpdb->posts
+            WHERE id = %d;", $contact_id )
+        );
+        return $response;
+    }
+
+    private function get_activity_date( $contact_id, $activity_note ) {
+        global $wpdb;
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+                SELECT hist_time
+                FROM $wpdb->dt_activity_log
+                WHERE object_note = %s
+                AND object_id = %d
+                ", $activity_note, $contact_id )
+        );
+        if ( isset( $response ) ) {
+            $timestamp = gmdate( 'Y-m-d H:i:s', $response );
+            return $timestamp;
         }
-        return $a /$b;
     }
 
     // Check how many health metrics are being practiced by a group
@@ -940,6 +961,71 @@ class Disciple_Tools_Advanced_Metrics
 
         $encoded_label = array_search( $meta_value, $distinct_values );
         return $encoded_label;
+    }
+
+    // Get Pearson Correlation between two variables
+    private function get_corr( $x, $y ) {
+        if ( count( $x ) !== count( $y ) ) {
+            return -1;
+        }
+
+        $x = array_values( $x );
+        $y = array_values( $y );
+        $xs = array_sum( $x ) / count( $x );
+        $ys = array_sum( $y ) / count( $y );
+        $a = 0;
+        $bx = 0;
+        $by = 0;
+
+        $x_length = count( $x );
+        for ( $i = 0; $i < $x_length; $i++ ) {
+            $xr =$x[$i] - $xs;
+            $yr =$y[$i] - $ys;
+            $a += $xr * $yr;
+            $bx += pow( $xr, 2 );
+            $by += pow( $yr, 2 );
+        }
+
+        $b = sqrt( $bx * $by );
+        if ( $b == 0 ) {
+            return 0;
+        }
+        return $a /$b;
+    }
+
+    private function elapsed_time( $start_date, $end_date ) {
+        if ( $start_date === null || $end_date === null ) {
+            return;
+        }
+        $start_date = new DateTime( $start_date );
+        $end_date = new DateTime( $end_date );
+        $elapsed_time = date_diff( $start_date, $end_date, true );
+        return $elapsed_time;
+    }
+
+    private function elapsed_seconds( $start_date, $end_date ) {
+        $elapsed_time = self::elapsed_time( $start_date, $end_date );
+        if ( $elapsed_time === null ) {
+            return;
+        }
+        $total_seconds = $elapsed_time->y * 31556926;
+        $total_seconds += $elapsed_time->m * 2629743;
+        $total_seconds += $elapsed_time->d * 6400;
+        $total_seconds += $elapsed_time->h * 3600;
+        $total_seconds += $elapsed_time->i * 60;
+        $total_seconds += $elapsed_time->s;
+        return $total_seconds;
+    }
+
+
+    private function seconds_to_time( $seconds ) {
+        $secs = $seconds % 60;
+        $mins = floor( ( $seconds % 3600 ) / 60 );
+        $hours = floor( ( $seconds % 86400 ) / 3600 );
+        $days = floor( ( $seconds % 2592000 ) / 86400 );
+        $months = floor( $seconds / 2592000 );
+
+        return "$months months, $days days, $hours hours, $mins minutes, $secs seconds";
     }
 
     private static $_instance = null;
