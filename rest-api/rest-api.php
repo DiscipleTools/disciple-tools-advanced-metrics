@@ -85,9 +85,9 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
-            $namespace, '/get_average_contact_data', [
+            $namespace, '/get_average_contact_journey', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_average_contact_data' ],
+                'callback' => [ $this, 'get_average_contact_journey' ],
             ]
         );
     }
@@ -214,7 +214,6 @@ class Disciple_Tools_Advanced_Metrics
 
             $output['description'] = "There $is_text $female_leader_ratio female $leader_female_text for every $male_leader_ratio male $leader_male_text.";
         }
-
         return $output;
     }
 
@@ -273,7 +272,6 @@ class Disciple_Tools_Advanced_Metrics
             $his_text = self::get_text( 'his', 'their', $has_bible_ratio );
             $output['description'] = "$reading_bible_ratio out of every $has_bible_ratio $contact_is_text reading $his_text Bible.";
         }
-
         return $output;
     }
 
@@ -711,20 +709,188 @@ class Disciple_Tools_Advanced_Metrics
     }
 
     // Get the average contact data in order to compare it to a specific contact's progress
-    public function get_average_contact_data() {
+    public function get_average_contact_journey() {
         $contact_ids = self::get_ids( 'contacts' );
         $all_elapsed_times = null;
         $output = null;
 
+        $output = [];
+
+        $average_times['first_contact_established'] = [
+            'label' => 'The time it takes for a contact to be contacted for the first time',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['first_no_answer'] = [
+            'label' => 'The time it takes someone to attempt contacting a contact without an answer',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['first_meeting_complete'] = [
+            'label' => 'The time it takes for a contact to have their first meeting after creating the contact',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['first_contact_to_meeting_complete'] = [
+            'label' => 'The time it takes for a contact to have their first meeting after the first contact was established',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['has_bible'] = [
+            'label' => 'The average time a contact takes to get a Bible',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['reading_bible'] = [
+            'label' => 'The average time a contact takes to start reading his Bible after receiving it',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['states_belief'] = [
+            'label' => 'The average time a contact to state belief after their first meeting',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['can_share_gospel'] = [
+            'label' => 'The average time a contact to be able to share the gospel or a testimony after stating belief',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['is_sharing_gospel'] = [
+            'label' => 'The average time a contact to be able to actually share the gospel or a testimony after being able to',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['is_baptized'] = [
+            'label' => 'The average time a contact takes to be baptized after stating belief',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['is_baptizing'] = [
+            'label' => 'The average time a contact takes to be baptizing other after being baptized himself',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['in_church'] = [
+            'label' => 'The average time a contact takes to be in a church or group after stating belief',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['starting_churches'] = [
+            'label' => 'The average time a contact takes to be starting churches after stating belief',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'formatted_time' => null,
+        ];
+
+
         foreach ( $contact_ids as $id ) {
-            $start_date = self::get_contact_creation_date( $id );
-            $end_date = self::get_activity_date( $id, 'Added Faith Milestones: Has Bible' );
-            $elapsed_seconds = self::elapsed_seconds( $start_date, $end_date );
-            $all_elapsed_seconds[] = self::elapsed_seconds( $start_date, $end_date );
+            $creation_date = self::get_contact_creation_date( $id );
+
+            // Contact created until first contact established
+            $first_contact_date = self::get_activity_date( $id, 'Added Contact Established: 1' );
+            $first_contact_elapsed_seconds = self::elapsed_seconds( $creation_date, $first_contact_date );
+            $average_times['first_contact_established']['all_times'][] = $first_contact_elapsed_seconds;
+
+            // Contact created until first no answer
+            $first_no_answer_date = self::get_activity_date( $id, 'Added No Answer: 1' );
+            $first_no_answer_elapsed_seconds = self::elapsed_seconds( $creation_date, $first_no_answer_date );
+            $average_times['first_no_answer']['all_times'][] = $first_no_answer_elapsed_seconds;
+            // Contact called until first contact
+
+
+            // Contact created until first meeting
+            $first_meeting_complete_date = self::get_activity_date( $id, 'Added Meeting Complete: 1' );
+            $first_meeting_complete_elapsed_seconds = self::elapsed_seconds( $creation_date, $first_meeting_complete_date );
+            $average_times['first_meeting_complete']['all_times'][] = $first_meeting_complete_elapsed_seconds;
+
+
+            // First contact established until first meeting
+            $first_contact_to_meeting_complete_elapsed_seconds = self::elapsed_seconds( $first_contact_date, $first_meeting_complete_date );
+            $average_times['first_contact_to_meeting_complete']['all_times'][] = $first_contact_to_meeting_complete_elapsed_seconds;
+
+            // Contact created until has Bible
+            $has_bible_date = self::get_activity_date( $id, 'Added Faith Milestones: Has Bible' );
+            $has_bible_elapsed_seconds = self::elapsed_seconds( $creation_date, $has_bible_date );
+            $average_times['has_bible']['all_times'][] = $has_bible_elapsed_seconds;
+
+            // Contact has Bible until read Bible
+            $reading_bible_date = self::get_activity_date( $id, 'Added Faith Milestones: Reading Bible' );
+            $reading_bible_elapsed_seconds = self::elapsed_seconds( $first_meeting_complete_date, $reading_bible_date );
+            $average_times['reading_bible']['all_times'][] = $reading_bible_elapsed_seconds;
+
+            // Contact first meeting complete until states belief
+            $states_belief_date = self::get_activity_date( $id, 'Added Faith Milestones: States Belief' );
+            $states_belief_elapsed_seconds = self::elapsed_seconds( $first_meeting_complete_date, $states_belief_date );
+            $average_times['states_belief']['all_times'][] = $states_belief_elapsed_seconds;
+
+            // Contact states belief until can share gospel or testimony
+            $can_share_gospel_date = self::get_activity_date( $id, 'Added Faith Milestones: Can Share Gospel/Testimony' );
+            $can_share_gospel_elapsed_seconds = self::elapsed_seconds( $states_belief_date, $can_share_gospel_date );
+            $average_times['can_share_gospel']['all_times'][] = $can_share_gospel_elapsed_seconds;
+
+            // Contact actually shares gospel or testimony after being able to
+            $is_sharing_gospel_date = self::get_activity_date( $id, 'Added Faith Milestones: Sharing Gospel/Testimony' );
+            $is_sharing_gospel_elapsed_seconds = self::elapsed_seconds( $can_share_gospel_date, $is_sharing_gospel_date );
+            $average_times['is_sharing_gospel']['all_times'][] = $is_sharing_gospel_elapsed_seconds;
+
+            // Contact has been baptized after stating belief
+            $is_baptized_date = self::get_activity_date( $id, 'Added Faith Milestones: Baptized' );
+            $is_baptized_elapsed_seconds = self::elapsed_seconds( $states_belief_date, $is_baptized_date );
+            $average_times['is_baptized']['all_times'][] = $is_baptized_elapsed_seconds;
+
+            // Contact is baptizing after being baptized himself
+            $is_baptizing_date = self::get_activity_date( $id, 'Added Faith Milestones: Baptizing' );
+            $is_baptizing_elapsed_seconds = self::elapsed_seconds( $is_baptized_date, $is_baptizing_date );
+            $average_times['is_baptizing']['all_times'][] = $is_baptizing_elapsed_seconds;
+
+            // Contact is in group or church after stating belief
+            $in_church_date = self::get_activity_date( $id, 'Added Faith Milestones: In Church/Group' );
+            $in_church_elapsed_seconds = self::elapsed_seconds( $states_belief_date, $in_church_date );
+            $average_times['in_church']['all_times'][] = $in_church_elapsed_seconds;
+
+            // Contact is starting churches after stating belief
+            $starting_churches_date = self::get_activity_date( $id, 'Added Faith Milestones: Starting Churches' );
+            $starting_churches_elapsed_seconds = self::elapsed_seconds( $states_belief_date, $starting_churches_date );
+            $average_times['starting_churches']['all_times'][] = $starting_churches_elapsed_seconds;
+
+
+
         }
-        $all_elapsed_seconds = array_filter( $all_elapsed_seconds );
-        $avg_elapsed_seconds = array_sum( $all_elapsed_seconds ) / count( $all_elapsed_seconds );
-        return self::seconds_to_time( $avg_elapsed_seconds );
+
+
+        // Get all average elapsed times and format them accordingly
+        foreach ( $average_times as $average_time ) {
+            $average_time['avg_seconds'] = self::process_elapsed_times( $average_time['all_times'] );
+            $average_time['formatted_time'] = self::seconds_to_time( $average_time['avg_seconds'] );
+            $output[] = $average_time['label'] . ' is: ' . $average_time['formatted_time'];
+        }
+
+        var_export( $output );
+        die();
+        return $output;
+    }
+
+    // Calculate the average elapsed time from all elapsed times
+    private function process_elapsed_times( $arr_times ) {
+        if ( $arr_times === null ) {
+            return;
+        }
+        $arr_times = array_filter( $arr_times );
+        $avg_time = array_sum( $arr_times ) / count( $arr_times );
+        return $avg_time;
     }
 
     private function get_contact_creation_date( $contact_id ) {
