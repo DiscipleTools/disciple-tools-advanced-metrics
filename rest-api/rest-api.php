@@ -85,9 +85,16 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
-            $namespace, '/get_average_contact_journey', [
+            $namespace, '/get_average_contact_journey_data', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_average_contact_journey' ],
+                'callback' => [ $this, 'get_average_contact_journey_data' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get_average_contact_journey_text', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_average_contact_journey_text' ],
             ]
         );
     }
@@ -709,7 +716,7 @@ class Disciple_Tools_Advanced_Metrics
     }
 
     // Get the average contact data in order to compare it to a specific contact's progress
-    public function get_average_contact_journey() {
+    public function get_average_contact_journey_data() {
         $contact_ids = self::get_ids( 'contacts' );
         $all_elapsed_times = null;
         $output = null;
@@ -717,87 +724,156 @@ class Disciple_Tools_Advanced_Metrics
         $output = [];
 
         $average_times['first_contact_established'] = [
-            'label' => 'The time it takes for a contact to be contacted for the first time',
+            'name' => 'First contact established',
+            'description' => 'The time it takes for a contact to be contacted for the first time',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['first_no_answer'] = [
-            'label' => 'The time it takes someone to attempt contacting a contact without an answer',
+            'name' => 'First no-answer',
+            'description' => 'The time it takes someone to attempt contacting a contact without an answer',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['first_meeting_complete'] = [
-            'label' => 'The time it takes for a contact to have their first meeting after creating the contact',
+            'name' => 'First meeting complete',
+            'description' => 'The time it takes for a contact to have their first meeting after creating the contact',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['first_contact_to_meeting_complete'] = [
-            'label' => 'The time it takes for a contact to have their first meeting after the first contact was established',
+            'name' => 'First contact to meeting-complete',
+            'description' => 'The time it takes for a contact to have their first meeting after the first contact was established',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['has_bible'] = [
-            'label' => 'The average time a contact takes to get a Bible',
+            'name' => 'Has Bible',
+            'description' => 'The average time a contact takes to get a Bible',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['reading_bible'] = [
-            'label' => 'The average time a contact takes to start reading his Bible after receiving it',
+            'name' => 'Is reading Bible',
+            'description' => 'The average time a contact takes to start reading his Bible after receiving it',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['states_belief'] = [
-            'label' => 'The average time a contact to state belief after their first meeting',
+            'name' => 'States belief',
+            'description' => 'The average time a contact to state belief after their first meeting',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['can_share_gospel'] = [
-            'label' => 'The average time a contact to be able to share the gospel or a testimony after stating belief',
+            'name' => 'Can share Gospel',
+            'description' => 'The average time a contact to be able to share the gospel or a testimony after stating belief',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['is_sharing_gospel'] = [
-            'label' => 'The average time a contact to be able to actually share the gospel or a testimony after being able to',
+            'name' => 'Is sharing Gospel',
+            'description' => 'The average time a contact to be able to actually share the gospel or a testimony after being able to',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['is_baptized'] = [
-            'label' => 'The average time a contact takes to be baptized after stating belief',
+            'name' => 'Is baptized',
+            'description' => 'The average time a contact takes to be baptized after stating belief',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['is_baptizing'] = [
-            'label' => 'The average time a contact takes to be baptizing other after being baptized himself',
+            'name' => 'Is baptizing',
+            'description' => 'The average time a contact takes to be baptizing others after being baptized himself',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
         $average_times['in_church'] = [
-            'label' => 'The average time a contact takes to be in a church or group after stating belief',
+            'name' => 'Is in a church',
+            'description' => 'The average time a contact takes to be in a church or group after stating belief',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
-        $average_times['starting_churches'] = [
-            'label' => 'The average time a contact takes to be starting churches after stating belief',
+        $average_times['starting_churches_after_stating_belief'] = [
+            'name' => 'Starting churches after stating belief',
+            'description' => 'The average time a contact takes to be starting churches after stating belief',
             'all_times' => null,
             'avg_seconds' => null,
+            'avg_days' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['starting_churches_after_baptized'] = [
+            'name' => 'Starting churches after being baptized',
+            'description' => 'The average time a contact takes to be starting churches after being baptized',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'avg_days' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['starting_churches_after_in_church'] = [
+            'name' => 'Starting churches after in a church',
+            'description' => 'The average time a contact takes to be starting churches after going to a church himself',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'avg_days' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['seeker_to_believer'] = [
+            'name' => 'Seeker to believer',
+            'description' => 'The average time a seeker takes to become a believer',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'avg_days' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['believer_to_leader'] = [
+            'name' => 'Believer to leader',
+            'description' => 'The average time a believer takes to become a leader',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'avg_days' => null,
+            'formatted_time' => null,
+        ];
+        $average_times['seeker_to_leader'] = [
+            'name' => 'Seeker to leader',
+            'description' => 'The average time a seeker takes to become a leader',
+            'all_times' => null,
+            'avg_seconds' => null,
+            'avg_days' => null,
             'formatted_time' => null,
         ];
 
 
         foreach ( $contact_ids as $id ) {
             $creation_date = self::get_contact_creation_date( $id );
+            $seeker_date = self::get_contact_faith_status_date( $id, 'seeker' );
+            $believer_date = self::get_contact_faith_status_date( $id, 'believer' );
+            $leader_date = self::get_contact_faith_status_date( $id, 'leader' );
 
             // Contact created until first contact established
             $first_contact_date = self::get_activity_date( $id, 'Added Contact Established: 1' );
@@ -863,29 +939,56 @@ class Disciple_Tools_Advanced_Metrics
 
             // Contact is starting churches after stating belief
             $starting_churches_date = self::get_activity_date( $id, 'Added Faith Milestones: Starting Churches' );
-            $starting_churches_elapsed_seconds = self::elapsed_seconds( $states_belief_date, $starting_churches_date );
-            $average_times['starting_churches']['all_times'][] = $starting_churches_elapsed_seconds;
+            $starting_churches_after_belief_elapsed_seconds = self::elapsed_seconds( $states_belief_date, $starting_churches_date );
+            $average_times['starting_churches_after_stating_belief']['all_times'][] = $starting_churches_after_belief_elapsed_seconds;
 
+            // Contact is starting churches after being baptized
+            $starting_churches_after_belief_elapsed_seconds = self::elapsed_seconds( $is_baptized_date, $starting_churches_date );
+            $average_times['starting_churches_after_baptized']['all_times'][] = $starting_churches_after_belief_elapsed_seconds;
 
+            // Contact is starting churches after going to church
+            $starting_churches_after_in_church_elapsed_seconds = self::elapsed_seconds( $in_church_date, $starting_churches_date );
+            $average_times['starting_churches_after_in_church']['all_times'][] = $starting_churches_after_in_church_elapsed_seconds;
 
+            // Seeker is a believer
+            $average_times['seeker_to_believer']['all_times'][] = self::elapsed_seconds( $seeker_date, $believer_date );
+
+            // Believer is a leader
+            $average_times['believer_to_leader']['all_times'][] = self::elapsed_seconds( $believer_date, $leader_date );
+
+            // Seeker is a leader
+            $average_times['seeker_to_leader']['all_times'][] = self::elapsed_seconds( $seeker_date, $leader_date );
         }
-
 
         // Get all average elapsed times and format them accordingly
+        $ouptut = [];
         foreach ( $average_times as $average_time ) {
-            $average_time['avg_seconds'] = self::process_elapsed_times( $average_time['all_times'] );
-            $average_time['formatted_time'] = self::seconds_to_time( $average_time['avg_seconds'] );
-            $output[] = $average_time['label'] . ' is: ' . $average_time['formatted_time'];
+            $average_seconds = self::process_elapsed_times( $average_time['all_times'] );
+            $output[] = [
+                'name' => $average_time['name'],
+                'description' => $average_time['description'],
+                'average_seconds' => $average_seconds,
+                'average_days' => $average_seconds / 86400,
+                'formatted_time' => self::seconds_to_time( $average_seconds ),
+            ];
         }
+        return $output;
+    }
 
-        var_export( $output );
-        die();
+    // Returns average contact journey data as text insights
+    public function get_average_contact_journey_text() {
+        $average_times = self::get_average_contact_journey_data();
+        $output = [];
+
+        foreach ( $average_times as $average_time ) {
+            $output[] = $average_time['description'] . ' is: ' . $average_time['formatted_time'];
+        }
         return $output;
     }
 
     // Calculate the average elapsed time from all elapsed times
     private function process_elapsed_times( $arr_times ) {
-        if ( $arr_times === null ) {
+        if ( $arr_times === null || empty( $arr_times ) ) {
             return;
         }
         $arr_times = array_filter( $arr_times );
@@ -902,6 +1005,27 @@ class Disciple_Tools_Advanced_Metrics
             WHERE id = %d;", $contact_id )
         );
         return $response;
+    }
+
+    // Get the date in which a contact changes their faith status to a specific status
+    private function get_contact_faith_status_date( $contact_id, $faith_status ) {
+        $faith_status = ucfirst( $faith_status );
+        global $wpdb;
+        $response = $wpdb->get_var(
+            $wpdb->prepare( "
+            SELECT hist_time FROM
+            $wpdb->dt_activity_log WHERE
+            object_id = %d AND
+            object_subtype = 'faith_status' AND
+            object_note = CONCAT( 'Added Faith Status: ', %s ) OR
+            object_note REGEXP CONCAT( 'Faith Status changed from \".+?\" to \"', %s, '\"' )
+            ORDER BY histid DESC
+            LIMIT 1;", $contact_id, $faith_status, $faith_status )
+        );
+        if ( isset( $response ) ) {
+            $timestamp = gmdate( 'Y-m-d H:i:s', $response );
+            return $timestamp;
+        }
     }
 
     private function get_activity_date( $contact_id, $activity_note ) {
@@ -1160,7 +1284,7 @@ class Disciple_Tools_Advanced_Metrics
     }
 
     private function elapsed_time( $start_date, $end_date ) {
-        if ( $start_date === null || $end_date === null ) {
+        if ( $start_date === null || empty( $start_date ) || $end_date === null || empty( $end_date ) ) {
             return;
         }
         $start_date = new DateTime( $start_date );
@@ -1171,7 +1295,7 @@ class Disciple_Tools_Advanced_Metrics
 
     private function elapsed_seconds( $start_date, $end_date ) {
         $elapsed_time = self::elapsed_time( $start_date, $end_date );
-        if ( $elapsed_time === null ) {
+        if ( $elapsed_time === null || empty( $elapsed_time ) ) {
             return;
         }
         $total_seconds = $elapsed_time->y * 31556926;

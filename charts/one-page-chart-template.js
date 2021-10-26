@@ -31,43 +31,90 @@
     `)
 
     // Create chart instance
-    var chart = am4core.create("chartdiv", am4charts.PieChart);
+var chart = am4core.create("chartdiv", am4charts.XYChart);
 
     // Add data
     chart.data = [{
-      "country": "Lithuania",
-      "litres": 501.9
-    }, {
-      "country": "Czech Republic",
-      "litres": 301.9
-    }, {
-      "country": "Ireland",
-      "litres": 201.1
-    }, {
-      "country": "Germany",
-      "litres": 165.8
-    }, {
-      "country": "Australia",
-      "litres": 139.9
-    }, {
-      "country": "Austria",
-      "litres": 128.3
-    }, {
-      "country": "UK",
-      "litres": 99
-    }, {
-      "country": "Belgium",
-      "litres": 60
-    }, {
-      "country": "The Netherlands",
-      "litres": 50
-    }];
+  "category": "",
+  "from": 0,
+  "to": 15,
+  "name": "Stage #1",
+  "fill": am4core.color("#0ca948")
+}, {
+  "category": "",
+  "from": 15,
+  "to": 75,
+  "name": "Stage #2",
+  "fill": am4core.color("#93da49")
+}, {
+  "category": "",
+  "from": 75,
+  "to": 90,
+  "name": "Stage #3",
+  "fill": am4core.color("#ffd100")
+}, {
+  "category": "",
+  "from": 90,
+  "to": 95,
+  "name": "Stage #4",
+  "fill": am4core.color("#cd213b")
+}, {
+  "category": "",
+  "from": 95,
+  "to": 100,
+  "name": "Stage #5",
+  "fill": am4core.color("#9e9e9e")
+}];
 
-    // Add and configure Series
-    var pieSeries = chart.series.push(new am4charts.PieSeries());
-    pieSeries.dataFields.value = "litres";
-    pieSeries.dataFields.category = "country";
+    // Create axes
+var yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+yAxis.dataFields.category = "category";
+yAxis.renderer.grid.template.disabled = true;
+yAxis.renderer.labels.template.disabled = true;
+
+var xAxis = chart.xAxes.push(new am4charts.ValueAxis());
+xAxis.renderer.grid.template.disabled = true;
+xAxis.renderer.grid.template.disabled = true;
+xAxis.renderer.labels.template.disabled = true;
+xAxis.min = 0;
+xAxis.max = 100;
+
+// Create series
+var series = chart.series.push(new am4charts.ColumnSeries());
+series.dataFields.valueX = "to";
+series.dataFields.openValueX = "from";
+series.dataFields.categoryY = "category";
+series.columns.template.propertyFields.fill = "fill";
+series.columns.template.strokeOpacity = 0;
+series.columns.template.height = am4core.percent(100);
+
+// Ranges/labels
+chart.events.on("beforedatavalidated", function(ev) {
+  var data = chart.data;
+  for(var i = 0; i < data.length; i++) {
+    var range = xAxis.axisRanges.create();
+    range.value = data[i].to;
+    range.label.text = data[i].to + "%";
+    range.label.horizontalCenter = "right";
+    range.label.paddingLeft = 5;
+    range.label.paddingTop = 5;
+    range.label.fontSize = 10;
+    range.grid.strokeOpacity = 0.2;
+    range.tick.length = 18;
+    range.tick.strokeOpacity = 0.2;
   }
+});
+
+// Legend
+var legend = new am4charts.Legend();
+legend.parent = chart.chartContainer;
+legend.itemContainers.template.clickable = false;
+legend.itemContainers.template.focusable = false;
+legend.itemContainers.template.cursorOverStyle = am4core.MouseCursorStyle.default;
+legend.align = "right";
+legend.data = chart.data;
+
+}); // end am4core.ready()
 
   window.sample_api_call = function sample_api_call( button_data ) {
 
