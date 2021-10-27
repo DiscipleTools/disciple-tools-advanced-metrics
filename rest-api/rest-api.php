@@ -36,7 +36,7 @@ class Disciple_Tools_Advanced_Metrics
                 //     return $this->has_permission();
                 // },
             ]
-        );        
+        );
 
         register_rest_route(
             $namespace, '/get_bible_reading_ratio', [
@@ -125,12 +125,12 @@ class Disciple_Tools_Advanced_Metrics
             '>41' => [ 'male' => 0, 'female' => 0 ],
             'not-set' => [ 'male' => 0, 'female' => 0 ],
         ];
-        
+
         $contact_ids = self::get_ids( 'contacts' );
 
         foreach ( $contact_ids as $id ) {
-            $gender = self::get_postmeta_value( $id, 'gender');
-            if ( ! isset( $gender) || empty( $gender ) ) {
+            $gender = self::get_postmeta_value( $id, 'gender' );
+            if ( ! isset( $gender ) || empty( $gender ) ) {
                 continue;
             }
             $age = self::get_postmeta_value( $id, 'age' );
@@ -188,8 +188,8 @@ class Disciple_Tools_Advanced_Metrics
         $data['female'] = 0;
         $data['not-set'] = 0;
 
-        
-        foreach( $contact_ids as $id ) {
+
+        foreach ( $contact_ids as $id ) {
             $gender = self::get_postmeta_value( $id, 'gender' );
             if ( ! isset( $gender ) || empty( $gender ) ) {
                 $gender = 'not-set';
@@ -204,7 +204,7 @@ class Disciple_Tools_Advanced_Metrics
         ];
         return $output;
     }
-    
+
     // Get the amount of men compared to women
     public function get_gender_ratio() {
         $output = null;
@@ -820,7 +820,7 @@ class Disciple_Tools_Advanced_Metrics
     // Get the average contact data in order to compare it to a specific contact's progress
     public function get_average_contact_journey_data() {
         $contact_ids = self::get_ids( 'contacts' );
-        $today =  gmdate( 'Y-m-d H:i:s', time() );
+        $today = gmdate( 'Y-m-d H:i:s', time() );
         $all_elapsed_times = null;
         $output = null;
 
