@@ -29,6 +29,16 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
+            $namespace, '/get_gender_ratio_chart', [
+                'methods'  => 'GET',
+                'callback' => [ $this, 'get_gender_ratio_chart' ],
+                // 'permission_callback' => function( WP_REST_Request $request ) {
+                //     return $this->has_permission();
+                // },
+            ]
+        );        
+
+        register_rest_route(
             $namespace, '/get_bible_reading_ratio', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_bible_reading_ratio' ],
@@ -97,11 +107,106 @@ class Disciple_Tools_Advanced_Metrics
                 'callback' => [ $this, 'get_average_contact_journey_text' ],
             ]
         );
+
+        register_rest_route(
+            $namespace, '/get_population_pyramid', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_population_pyramid' ],
+            ]
+        );
     }
 
+    // Get population pyramid
+    public function get_population_pyramid() {
+        $data = [
+            '<19' => [ 'male' => 0, 'female' => 0 ],
+            '<26' => [ 'male' => 0, 'female' => 0 ],
+            '<41' => [ 'male' => 0, 'female' => 0 ],
+            '>41' => [ 'male' => 0, 'female' => 0 ],
+            'not-set' => [ 'male' => 0, 'female' => 0 ],
+        ];
+        
+        $contact_ids = self::get_ids( 'contacts' );
 
+        foreach ( $contact_ids as $id ) {
+            $gender = self::get_postmeta_value( $id, 'gender');
+            if ( ! isset( $gender) || empty( $gender ) ) {
+                continue;
+            }
+            $age = self::get_postmeta_value( $id, 'age' );
+
+            switch ( $age ) {
+                case '<19':
+                    $data['<19'][ $gender ] ++;
+                    break;
+
+                case '&lt;19':
+                    $data['<19'][ $gender ] ++;
+                    break;
+
+                case '<26':
+                    $data['<26'][ $gender ] ++;
+                    break;
+
+                case '&lt;26':
+                    $data['<26'][ $gender ] ++;
+                    break;
+
+                case '<41':
+                    $data['<41'][ $gender ] ++;
+                    break;
+
+                case '&lt;41':
+                    $data['<41'][ $gender ] ++;
+                    break;
+
+                case '>41':
+                    $data['>41'][ $gender ] ++;
+                    break;
+
+                case '&gt;41':
+                    $data['>41'][ $gender ] ++;
+                    break;
+
+                case null:
+                    $data['not-set'][ $gender ] ++;
+                    break;
+            }
+        }
+        $output[] = [ 'category' => 'Under 18 years old', 'male' => $data['<19']['male'], 'female' => $data['<19']['female'] ];
+        $output[] = [ 'category' => '18 - 25 years old', 'male' => $data['<26']['male'], 'female' => $data['<26']['female'] ];
+        $output[] = [ 'category' => '26 - 40 years old', 'male' => $data['<41']['male'], 'female' => $data['<41']['female'] ];
+        $output[] = [ 'category' => 'Over 40 years old', 'male' => $data['>41']['male'], 'female' => $data['<41']['female'] ];
+        $output[] = [ 'category' => 'Not set', 'male' => $data['not-set']['male'], 'female' => $data['not-set']['female'] ];
+        return $output;
+    }
+
+    public function get_gender_ratio_chart() {
+        $contact_ids = self::get_ids( 'contacts' );
+        $data = [];
+        $data['male'] = 0;
+        $data['female'] = 0;
+        $data['not-set'] = 0;
+
+        
+        foreach( $contact_ids as $id ) {
+            $gender = self::get_postmeta_value( $id, 'gender' );
+            if ( ! isset( $gender ) || empty( $gender ) ) {
+                $gender = 'not-set';
+            }
+            $data[$gender]++;
+        }
+
+        $output = [
+            [ 'gender' => 'male', 'count' => $data['male'] ],
+            [ 'gender' => 'female', 'count' => $data['female'] ],
+            [ 'gender' => 'not-set', 'count' => $data['not-set'] ],
+        ];
+        return $output;
+    }
+    
     // Get the amount of men compared to women
-    public function get_gender_ratio( WP_REST_Request $request ) {
+    public function get_gender_ratio() {
         $output = null;
         $contact_ids = self::get_ids( 'contacts' );
         $male_count = 0;
@@ -151,7 +256,7 @@ class Disciple_Tools_Advanced_Metrics
     }
 
     // Get the amount of male leaders compared to female leaders
-    public function get_leader_gender_ratio( WP_REST_Request $request ) {
+    public function get_leader_gender_ratio() {
         $output = null;
         global $wpdb;
 
@@ -225,7 +330,7 @@ class Disciple_Tools_Advanced_Metrics
     }
 
     // Get the amount of Bible readers for every Bible owner
-    public function get_bible_reading_ratio( WP_REST_Request $request ) {
+    public function get_bible_reading_ratio() {
         global $wpdb;
         $output = null;
 
@@ -517,7 +622,6 @@ class Disciple_Tools_Advanced_Metrics
 
         // Cache the data
         set_transient( 'dt_advanced_metrics_contacts_corr', $contacts_corr_data, 60 *60 *24 );
-
         return $contacts_corr_data;
     }
 
@@ -572,7 +676,6 @@ class Disciple_Tools_Advanced_Metrics
             'church_sharing' => 'share the gospel',
         ];
 
-
         foreach ( $correlations as $corr ) {
             $corr_hash = [];
             foreach ( $corr as $key => $value ) {
@@ -612,7 +715,6 @@ class Disciple_Tools_Advanced_Metrics
                 }
             }
         }
-
         return $insights;
     }
 
@@ -718,156 +820,126 @@ class Disciple_Tools_Advanced_Metrics
     // Get the average contact data in order to compare it to a specific contact's progress
     public function get_average_contact_journey_data() {
         $contact_ids = self::get_ids( 'contacts' );
+        $today =  gmdate( 'Y-m-d H:i:s', time() );
         $all_elapsed_times = null;
         $output = null;
 
         $output = [];
 
         $average_times['first_contact_established'] = [
+            'label' => 'first_contact_established',
             'name' => 'First contact established',
             'description' => 'The time it takes for a contact to be contacted for the first time',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['first_no_answer'] = [
+            'label' => 'first_no_answer',
             'name' => 'First no-answer',
             'description' => 'The time it takes someone to attempt contacting a contact without an answer',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['first_meeting_complete'] = [
+            'label' => 'first_meeting_complete',
             'name' => 'First meeting complete',
             'description' => 'The time it takes for a contact to have their first meeting after creating the contact',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['first_contact_to_meeting_complete'] = [
+            'label' => 'first_contact_to_meeting_complete',
             'name' => 'First contact to meeting-complete',
             'description' => 'The time it takes for a contact to have their first meeting after the first contact was established',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['has_bible'] = [
+            'label' => 'has_bible',
             'name' => 'Has Bible',
             'description' => 'The average time a contact takes to get a Bible',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['reading_bible'] = [
+            'label' => 'reading_bible',
             'name' => 'Is reading Bible',
             'description' => 'The average time a contact takes to start reading his Bible after receiving it',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['states_belief'] = [
+            'label' => 'states_belief',
             'name' => 'States belief',
             'description' => 'The average time a contact to state belief after their first meeting',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['can_share_gospel'] = [
+            'label' => 'can_share_gospel',
             'name' => 'Can share Gospel',
             'description' => 'The average time a contact to be able to share the gospel or a testimony after stating belief',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['is_sharing_gospel'] = [
+            'label' => 'is_sharing_gospel',
             'name' => 'Is sharing Gospel',
             'description' => 'The average time a contact to be able to actually share the gospel or a testimony after being able to',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['is_baptized'] = [
+            'label' => 'is_baptized',
             'name' => 'Is baptized',
             'description' => 'The average time a contact takes to be baptized after stating belief',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['is_baptizing'] = [
+            'label' => 'is_baptizing',
             'name' => 'Is baptizing',
             'description' => 'The average time a contact takes to be baptizing others after being baptized himself',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['in_church'] = [
+            'label' => 'in_church',
             'name' => 'Is in a church',
             'description' => 'The average time a contact takes to be in a church or group after stating belief',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['starting_churches_after_stating_belief'] = [
+            'label' => 'starting_churches_after_stating_belief',
             'name' => 'Starting churches after stating belief',
             'description' => 'The average time a contact takes to be starting churches after stating belief',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['starting_churches_after_baptized'] = [
+            'label' => 'starting_churches_after_baptized',
             'name' => 'Starting churches after being baptized',
             'description' => 'The average time a contact takes to be starting churches after being baptized',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['starting_churches_after_in_church'] = [
+            'label' => 'starting_churches_after_in_church',
             'name' => 'Starting churches after in a church',
             'description' => 'The average time a contact takes to be starting churches after going to a church himself',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['seeker_to_believer'] = [
+            'label' => 'seeker_to_believer',
             'name' => 'Seeker to believer',
             'description' => 'The average time a seeker takes to become a believer',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['believer_to_leader'] = [
+            'label' => 'believer_to_leader',
             'name' => 'Believer to leader',
             'description' => 'The average time a believer takes to become a leader',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
         $average_times['seeker_to_leader'] = [
+            'label' => 'seeker_to_leader',
             'name' => 'Seeker to leader',
             'description' => 'The average time a seeker takes to become a leader',
             'all_times' => null,
-            'avg_seconds' => null,
-            'avg_days' => null,
-            'formatted_time' => null,
         ];
-
+        $average_times['leader_to_date'] = [
+            'label' => 'leader_to_date',
+            'name' => 'Leader to date',
+            'description' => 'The average time a contact has been a leader',
+            'all_times' => null,
+        ];
 
         foreach ( $contact_ids as $id ) {
             $creation_date = self::get_contact_creation_date( $id );
@@ -958,13 +1030,16 @@ class Disciple_Tools_Advanced_Metrics
 
             // Seeker is a leader
             $average_times['seeker_to_leader']['all_times'][] = self::elapsed_seconds( $seeker_date, $leader_date );
+
+            // Leader has been a leader
+            $average_times['leader_to_date']['all_times'][] = self::elapsed_seconds( $leader_date, $today );
         }
 
         // Get all average elapsed times and format them accordingly
         $ouptut = [];
         foreach ( $average_times as $average_time ) {
             $average_seconds = self::process_elapsed_times( $average_time['all_times'] );
-            $output[] = [
+            $output[$average_time['label']] = [
                 'name' => $average_time['name'],
                 'description' => $average_time['description'],
                 'average_seconds' => $average_seconds,
@@ -1179,7 +1254,7 @@ class Disciple_Tools_Advanced_Metrics
         $response = $wpdb->get_var(
             $wpdb->prepare( "
                 SELECT $column_name
-                FROM wp_posts
+                FROM $wpdb->posts
                 WHERE ID = %s;", $post_id )
         );
         return $response;
