@@ -16,7 +16,7 @@ class Disciple_Tools_Advanced_Metrics
      */
     //See https://github.com/DiscipleTools/disciple-tools-theme/wiki/Site-to-Site-Link for outside of wordpress authentication
     public function add_api_routes() {
-        $namespace = 'disciple_tools_advanced_metrics/v1';
+        $namespace = 'disciple-tools-advanced-metrics/v1';
 
         register_rest_route(
             $namespace, '/get_gender_ratio', [
