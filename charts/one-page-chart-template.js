@@ -26,50 +26,19 @@
       
       <hr style="max-width:100%;">
 
-      <button type="button" onclick="sample_api_call('Yeh successful response from API!')" class="button" id="sample_button">${translations["Sample API Call"]}</button>
       <div id="sample_spinner" style="display: inline-block" class="loading-spinner"></div>
     `)
 
     // Create chart instance
-    var chart = am4core.create("chartdiv", am4charts.PieChart);
+    
 
     // Add data
-    chart.data = [{
-      "country": "Lithuania",
-      "litres": 501.9
-    }, {
-      "country": "Czech Republic",
-      "litres": 301.9
-    }, {
-      "country": "Ireland",
-      "litres": 201.1
-    }, {
-      "country": "Germany",
-      "litres": 165.8
-    }, {
-      "country": "Australia",
-      "litres": 139.9
-    }, {
-      "country": "Austria",
-      "litres": 128.3
-    }, {
-      "country": "UK",
-      "litres": 99
-    }, {
-      "country": "Belgium",
-      "litres": 60
-    }, {
-      "country": "The Netherlands",
-      "litres": 50
-    }];
+    get_gender_ratio_chart()
 
-    // Add and configure Series
-    var pieSeries = chart.series.push(new am4charts.PieSeries());
-    pieSeries.dataFields.value = "litres";
-    pieSeries.dataFields.category = "country";
+    
   }
 
-  window.sample_api_call = function sample_api_call( button_data ) {
+  window.get_gender_ratio_chart = function get_gender_ratio_chart( ) {
 
 
     let localizedObject = window.wp_js_object // change this object to the one named in ui-menu-and-enqueue.php
@@ -78,26 +47,29 @@
 
     $('#sample_spinner').addClass("active")
 
-    let data = { "button_data": button_data };
     return jQuery.ajax({
-      type: "POST",
-      data: JSON.stringify(data),
+      type: "GET",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
-      url: `${localizedObject.rest_endpoints_base}/sample`,
+      url: `${localizedObject.rest_endpoints_base}/get_gender_ratio_chart`,
       beforeSend: function(xhr) {
         xhr.setRequestHeader('X-WP-Nonce', localizedObject.nonce);
       },
     })
     .done(function (data) {
       $('#sample_spinner').removeClass("active")
-      button.empty().append(data)
-      console.log( 'success' )
+      var chart = am4core.create("chartdiv", am4charts.PieChart);
+      chart.data = data
       console.log( data )
+
+      // Add and configure Series
+      var pieSeries = chart.series.push(new am4charts.PieSeries());
+      pieSeries.dataFields.value = "count";
+      pieSeries.dataFields.category = "gender";
+      
     })
     .fail(function (err) {
       $('#sample_spinner').removeClass("active")
-      button.empty().append("error. Something went wrong")
       console.log("error");
       console.log(err);
     })

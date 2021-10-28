@@ -8,11 +8,11 @@ if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
 
 class DT_Advanced_Metrics_Chart_Template extends DT_Metrics_Chart_Base
 {
-    public $base_slug = 'disciple-tools-advanced-metrics-metrics'; // lowercase
-    public $base_title = "Advanced Metrics Metrics";
+    public $base_slug = 'disciple-tools-advanced-metrics'; // lowercase
+    public $base_title = "Advanced Metrics";
 
-    public $title = 'Template';
-    public $slug = 'template'; // lowercase
+    public $title = 'Contact Journey';
+    public $slug = 'v1'; // lowercase
     public $js_object_name = 'wp_js_object'; // This object will be loaded into the metrics.js file by the wp_localize_script.
     public $js_file_name = 'one-page-chart-template.js'; // should be full file name plus extension
     public $permissions = [ 'dt_all_access_contacts', 'view_project_metrics' ];
