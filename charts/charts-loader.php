@@ -16,6 +16,10 @@ class DT_Advanced_Metrics_Charts
         require_once( 'one-page-chart-template.php' );
         new DT_Advanced_Metrics_Chart_Template();
 
+        require_once( 'activity.php' );
+        require_once( 'streams.php' );
+        new DT_Advanced_Metrics_Chart_Activity();
+        new DT_Advanced_Metrics_Chart_Streams();
         /**
          * @todo add other charts like the pattern above here
          */
