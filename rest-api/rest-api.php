@@ -1249,16 +1249,16 @@ class Disciple_Tools_Advanced_Metrics
         return $response;
     }
 
-    private function get_meta_value( $post_id, $column_name ) {
-        global $wpdb;
-        $response = $wpdb->get_var(
-            $wpdb->prepare( "
-                SELECT $column_name
-                FROM $wpdb->posts
-                WHERE ID = %s;", $post_id )
-        );
-        return $response;
-    }
+//    private function get_meta_value( $post_id, $column_name ) {
+//        global $wpdb;
+//        $response = $wpdb->get_var(
+//            $wpdb->prepare( "
+//                SELECT $column_name
+//                FROM $wpdb->posts
+//                WHERE ID = %s;", $post_id )
+//        );
+//        return $response;
+//    }
 
     private function get_postmeta_value( $post_id, $meta_key ) {
         global $wpdb;
