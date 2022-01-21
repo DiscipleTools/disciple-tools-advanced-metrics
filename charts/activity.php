@@ -330,22 +330,6 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
     }
 
 
-    private function meeting_quick_action( $format, $activity_start, $date_start, $date_end ){
-        global $wpdb;
-        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
-            SELECT FROM_UNIXTIME(`hist_time`, %s) as day,
-            count(meta_key) as count
-            FROM $wpdb->dt_activity_log as log
-            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
-            WHERE object_type = 'contacts'
-            AND meta_key = 'quick_button_meeting_complete'
-            AND hist_time > %s
-            group by day
-            ORDER BY day ASC", $format, $date_start, $date_end, $activity_start ), ARRAY_A );
-
-        return $days_active_results;
-    }
-
     private function quick_action_count( $quick_action_label, $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
         $days_active_results = $wpdb->get_results( $wpdb->prepare( "
