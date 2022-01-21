@@ -101,48 +101,57 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
             ],
         ];
         $option = isset( $step, $options[$params["step"]] ) ? $options[$params["step"]] : $options["year"];
-        return [
+
+        $advanced_metrics_count = [
             "new_contacts" => [
-                "label" => "#New Contacts",
+                "label" => "New Contacts",
                 "counts" => $this->format_date( $step, $this->new_contacts( $option["format"], $option["start"] ) ),
             ],
             "activity" => [
-                "label" => "#Contacts with User Activity",
+                "label" => "Contacts with User Activity",
                 "counts" => $this->format_date( $step, $this->activity( $option["format"], $option["start"] ) ),
             ],
             "contacts_with_user_comments" => [
-                "label" => "#Contacts with User Comments",
+                "label" => "Contacts with User Comments",
                 "counts" => $this->format_date( $step, $this->contacts_with_user_comments( $option["format"], $option["start"] ) ),
             ],
             "assignments" => [
-                "label" => "#Contacts User Assignment Change",
+                "label" => "Contacts with User Assignment Change",
                 "counts" => $this->format_date( $step, $this->user_assignment_change( $option["format"], $option["start"] ) ),
             ],
             "active" => [
-                "label" => "#Contacts Status to Active",
+                "label" => "Contacts with Status as Active",
                 "counts" => $this->format_date( $step, $this->became_active( $option["format"], $option["start"] ) ),
             ],
             "assigned_dispatch" => [
-                "label" => "#Contacts Assigned for Dispatch",
+                "label" => "Contacts Assigned for Dispatch",
                 "counts" => $this->format_date( $step, $this->assigned_for_dispatch( $option["format"], $option["start"] ) ),
             ],
             "assigned_follow_up" => [
-                "label" => "#Contacts Assigned for Follow-up",
+                "label" => "Contacts Assigned for Follow-up",
                 "counts" => $this->format_date( $step, $this->assigned_for_follow_up( $option["format"], $option["start"] ) ),
             ],
             "contact_attempted" => [
-                "label" => "#Contacts Contact Attempted",
+                "label" => "Contacts with Contact Attempted",
                 "counts" => $this->format_date( $step, $this->contact_attempted( $option["format"], $option["start"] ) ),
             ],
             "first_meeting" => [
-                "label" => "#Contacts 1st Meeting Complete",
+                "label" => "Contacts with 1st Meeting Complete",
                 "counts" => $this->format_date( $step, $this->first_meeting( $option["format"], $option["start"] ) ),
             ],
-            "meeting_activity" => [
-                "label" => "Count Quick Action Meetings",
-                "counts" => $this->format_date( $step, $this->meeting_quick_action( $option["format"], $option["start"] ) ),
-            ],
         ];
+
+        $fields = DT_Posts::get_post_settings( 'contacts' )['fields'];
+
+        foreach ( $fields as $field_key => $value ){
+            if ( strpos( $field_key, "quick_button" ) !== false ) {
+                $advanced_metrics_count[$field_key] = [
+                    "label" => "Quick Action - " . $value['name'],
+                    "counts" => $this->format_date( $step, $this->quick_action_count( $field_key, $option["format"], $option["start"] ) ),
+                ];
+            }
+        }
+        return $advanced_metrics_count;
     }
 
     private function format_date( $step = 'year', $counts = [] ){
@@ -320,6 +329,21 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
             INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date > FROM_UNIXTIME(%s) )
             WHERE object_type = 'contacts'
             AND meta_key = 'quick_button_meeting_complete'
+            group by day
+            ORDER BY day ASC", $format, $start ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
+    private function quick_action_count( $quick_action_label, $format, $start ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DATE_FORMAT(p.post_date, %s) as day,
+            count(meta_key) as count
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date > FROM_UNIXTIME(%s) )
+            WHERE object_type = 'contacts'
+            AND meta_key = '$quick_action_label'
             group by day
             ORDER BY day ASC", $format, $start ), ARRAY_A );
 
