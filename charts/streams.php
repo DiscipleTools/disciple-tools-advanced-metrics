@@ -345,7 +345,7 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
             WHERE object_type = 'contacts'
             AND meta_key = '$quick_action_label'
             group by day
-            ORDER BY day ASC", $format, $start ), ARRAY_A );
+            ORDER BY day ASC", $format, $start, $quick_action_label ), ARRAY_A );
 
         return $days_active_results;
     }

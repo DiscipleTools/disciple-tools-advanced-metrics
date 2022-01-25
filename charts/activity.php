@@ -341,7 +341,7 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             AND meta_key = '$quick_action_label'
             AND hist_time > %s
             group by day
-            ORDER BY day ASC", $format, $date_start, $date_end, $activity_start ), ARRAY_A );
+            ORDER BY day ASC", $format, $date_start, $date_end, $activity_start, $quick_action_label ), ARRAY_A );
 
         return $days_active_results;
     }
