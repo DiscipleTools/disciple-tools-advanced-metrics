@@ -343,7 +343,7 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
             FROM $wpdb->dt_activity_log as log
             INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date > FROM_UNIXTIME(%s) )
             WHERE object_type = 'contacts'
-            AND meta_key = '$quick_action_label'
+            AND meta_key = %s
             group by day
             ORDER BY day ASC", $format, $start, $quick_action_label ), ARRAY_A );
 

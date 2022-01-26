@@ -338,10 +338,10 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             FROM $wpdb->dt_activity_log as log
             INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
             WHERE object_type = 'contacts'
-            AND meta_key = '$quick_action_label'
+            AND meta_key = %s
             AND hist_time > %s
             group by day
-            ORDER BY day ASC", $format, $date_start, $date_end, $activity_start, $quick_action_label ), ARRAY_A );
+            ORDER BY day ASC", $format, $date_start, $date_end, $quick_action_label, $activity_start ), ARRAY_A );
 
         return $days_active_results;
     }
