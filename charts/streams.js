@@ -31,6 +31,7 @@ jQuery(document).ready(function() {
   `)
 
   let display_data = (data)=>{
+    console.log( data );
     let days = [];
     _.forOwn(data, (field_value, field_key)=>{
       days = _.union(days, field_value.counts.map(a=>a.day))
@@ -54,7 +55,7 @@ jQuery(document).ready(function() {
         field_value.counts.forEach(c=> {
           if (c.day===d) {
             has = true
-            html += `<td>${_.escape(c.count)}</td>`
+            html += `<td><a href="#">${_.escape(c.count)}</a></td>`
           }
         })
         if ( !has ){
