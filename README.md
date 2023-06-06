@@ -1,3 +1,5 @@
+![Build Status](https://github.com/DiscipleTools/disciple-tools-advanced-metrics/actions/workflows/ci.yml/badge.svg?branch=master)
+
 ![Plugin Banner](https://raw.githubusercontent.com/DiscipleTools/disciple-tools-advanced-metrics/master/documentation/banner.png)
 
 # Disciple.Tools - Advanced Metrics
@@ -27,6 +29,3 @@ in the [Discussions](https://github.com/DiscipleTools/disciple-tools-advanced-me
 code contributions are welcome using the [Pull Request](https://github.com/DiscipleTools/disciple-tools-advanced-metrics/pulls)
 system for git. For a more details on contribution see the
 [contribution guidelines](https://github.com/DiscipleTools/disciple-tools-advanced-metrics/blob/master/CONTRIBUTING.md).
-
-
-[![Build Status](https://travis-ci.com/DiscipleTools/disciple-tools-advanced-metrics.svg?branch=master)](https://travis-ci.com/DiscipleTools/disciple-tools-advanced-metrics)
