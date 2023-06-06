@@ -9,7 +9,7 @@ if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
 class DT_Advanced_Metrics_Chart_Template extends DT_Metrics_Chart_Base
 {
     public $base_slug = 'disciple-tools-advanced-metrics'; // lowercase
-    public $base_title = "Advanced Metrics";
+    public $base_title = 'Advanced Metrics';
 
     public $title = 'Contact Journey';
     public $slug = 'v1'; // lowercase
@@ -64,8 +64,8 @@ class DT_Advanced_Metrics_Chart_Template extends DT_Metrics_Chart_Base
                     // add preload stats data into arrays here
                 ],
                 'translations' => [
-                    "title" => $this->title,
-                    "Sample API Call" => __( "Sample API Call", 'disciple-tools-advanced-metrics' )
+                    'title' => $this->title,
+                    'Sample API Call' => __( 'Sample API Call', 'disciple-tools-advanced-metrics' )
                 ]
             ]
         );

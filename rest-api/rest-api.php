@@ -1241,10 +1241,10 @@ class Disciple_Tools_Advanced_Metrics
     private function get_ids( $post_type ) {
         global $wpdb;
         $response = $wpdb->get_col(
-            $wpdb->prepare( "
+            $wpdb->prepare( '
                 SELECT ID
                 FROM wp_posts
-                WHERE post_type = %s;", $post_type )
+                WHERE post_type = %s;', $post_type )
         );
         return $response;
     }

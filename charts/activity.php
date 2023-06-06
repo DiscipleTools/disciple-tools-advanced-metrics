@@ -6,7 +6,7 @@ if ( !defined( 'ABSPATH' ) ) {
 
 class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
     public $base_slug = 'disciple-tools-advanced-metrics'; // lowercase
-    public $base_title = "Advanced Metrics";
+    public $base_title = 'Advanced Metrics';
     public $namespace = 'dt/v1/advanced-metrics/';
 
     public $title = 'Activity';
@@ -54,14 +54,14 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
                 'stats' => [],
                 'rest_endpoints_base' => esc_url_raw( rest_url() ) . $this->namespace . $this->slug . '/',
                 'translations' => [
-                    "title" => $this->title,
-                    'filter_contacts_to_date_range' => __( "Filter contacts to date range:", 'disciple_tools' ),
-                    'all_time' => __( "All time", 'disciple_tools' ),
-                    'filter_to_date_range' => __( "Filter to date range", 'disciple_tools' ),
+                    'title' => $this->title,
+                    'filter_contacts_to_date_range' => __( 'Filter contacts to date range:', 'disciple_tools' ),
+                    'all_time' => __( 'All time', 'disciple_tools' ),
+                    'filter_to_date_range' => __( 'Filter to date range', 'disciple_tools' ),
                     'modal' => [
-                        'title' => __( "Advanced Activity Metrics", 'disciple_tools' ),
-                        'cancel_button' => __( "Cancel", 'disciple_tools' ),
-                        'table_head_title' => __( "Contact", 'disciple_tools' )
+                        'title' => __( 'Advanced Activity Metrics', 'disciple_tools' ),
+                        'cancel_button' => __( 'Cancel', 'disciple_tools' ),
+                        'table_head_title' => __( 'Contact', 'disciple_tools' )
                     ]
                 ]
             ]
@@ -73,14 +73,14 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             $this->namespace . $this->slug, '/get-data', [
                 'methods'  => 'GET',
                 'callback' => [ $this, 'get_data' ],
-                'permission_callback' => [ $this, "has_permission" ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
         register_rest_route(
             $this->namespace . $this->slug, '/get-count-data', [
                 'methods'  => 'POST',
                 'callback' => [ $this, 'get_count_data' ],
-                'permission_callback' => [ $this, "has_permission" ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
     }
@@ -91,8 +91,8 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             $step = $params['step'];
             $metric_day = $params['metric_day'];
             $metric_key = $params['metric_key'];
-            $date_start = !empty( $params["date_start"] ) ? $params["date_start"] : "1970-01-01";
-            $date_end = !empty( $params["date_end"] ) ? $params["date_end"] : "2100-01-01";
+            $date_start = !empty( $params['date_start'] ) ? $params['date_start'] : '1970-01-01';
+            $date_end = !empty( $params['date_end'] ) ? $params['date_end'] : '2100-01-01';
 
             // Format respective query date ranges.
             $ranges = $this->get_count_data_date_ranges( $step, $metric_day, $metric_key, $date_start, $date_end );
@@ -136,80 +136,80 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
     public function get_data( WP_REST_Request $request ){
         $params = $request->get_params();
 
-        $step = isset( $params["step"] ) ? $params["step"] : "year";
-        $date_start = isset( $params["date_start"] ) ? $params["date_start"] : "1970-01-01";
-        $date_end = isset( $params["date_end"] ) ? $params["date_end"] : "2100-01-01";
+        $step = isset( $params['step'] ) ? $params['step'] : 'year';
+        $date_start = isset( $params['date_start'] ) ? $params['date_start'] : '1970-01-01';
+        $date_end = isset( $params['date_end'] ) ? $params['date_end'] : '2100-01-01';
 
         $options = [
-            "all" => [
-                "format" =>'',
-                "start" => time() - 3600 * 24 * 365 * 40 // 40 years
+            'all' => [
+                'format' =>'',
+                'start' => time() - 3600 * 24 * 365 * 40 // 40 years
             ],
-            "year" => [
-                "format" =>'%Y',
-                "start" => time() - 3600 * 24 * 365 * 20 // 20 years
+            'year' => [
+                'format' =>'%Y',
+                'start' => time() - 3600 * 24 * 365 * 20 // 20 years
             ],
-            "month" => [
-                "format" =>'%Y-%m',
-                "start" => time() - 3600 * 24 * 365 * 3 // 3 year
+            'month' => [
+                'format' =>'%Y-%m',
+                'start' => time() - 3600 * 24 * 365 * 3 // 3 year
             ],
-            "week" => [
-                "format" =>'%YW%u',
-                "start" => time() - 3600 * 24 * 7 * 30 // 30 weeks
+            'week' => [
+                'format' =>'%YW%u',
+                'start' => time() - 3600 * 24 * 7 * 30 // 30 weeks
             ],
-            "day" => [
-                "format" =>'%Y-%m-%d',
-                "start" => time() - 3600 * 24 * 30 // 30 days
+            'day' => [
+                'format' =>'%Y-%m-%d',
+                'start' => time() - 3600 * 24 * 30 // 30 days
             ],
         ];
-        $option = isset( $step, $options[$params["step"]] ) ? $options[$params["step"]] : $options["year"];
+        $option = isset( $step, $options[$params['step']] ) ? $options[$params['step']] : $options['year'];
 
         $advanced_metrics_count = [
-            "new_contacts" => [
-                "label" => "New Contacts",
-                "counts" => $this->format_date( $step, $this->new_contacts( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'new_contacts' => [
+                'label' => 'New Contacts',
+                'counts' => $this->format_date( $step, $this->new_contacts( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "activity" => [
-                "label" => "Contacts with User Activity",
-                "counts" => $this->format_date( $step, $this->activity( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'activity' => [
+                'label' => 'Contacts with User Activity',
+                'counts' => $this->format_date( $step, $this->activity( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "contacts_with_user_comments" => [
-                "label" => "Contacts with User Comments",
-                "counts" => $this->format_date( $step, $this->contacts_with_user_comments( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'contacts_with_user_comments' => [
+                'label' => 'Contacts with User Comments',
+                'counts' => $this->format_date( $step, $this->contacts_with_user_comments( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "assignments" => [
-                "label" => "Contacts with User Assignment Change",
-                "counts" => $this->format_date( $step, $this->user_assignment_change( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'assignments' => [
+                'label' => 'Contacts with User Assignment Change',
+                'counts' => $this->format_date( $step, $this->user_assignment_change( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "active" => [
-                "label" => "Contacts with Status as Active",
-                "counts" => $this->format_date( $step, $this->became_active( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'active' => [
+                'label' => 'Contacts with Status as Active',
+                'counts' => $this->format_date( $step, $this->became_active( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "assigned_dispatch" => [
-                "label" => "Contacts Assigned for Dispatch",
-                "counts" => $this->format_date( $step, $this->assigned_for_dispatch( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'assigned_dispatch' => [
+                'label' => 'Contacts Assigned for Dispatch',
+                'counts' => $this->format_date( $step, $this->assigned_for_dispatch( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "assigned_follow_up" => [
-                "label" => "Contacts Assigned for Follow-up",
-                "counts" => $this->format_date( $step, $this->assigned_for_follow_up( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'assigned_follow_up' => [
+                'label' => 'Contacts Assigned for Follow-up',
+                'counts' => $this->format_date( $step, $this->assigned_for_follow_up( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "contact_attempted" => [
-                "label" => "Contacts with Contact Attempted",
-                "counts" => $this->format_date( $step, $this->contact_attempted( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'contact_attempted' => [
+                'label' => 'Contacts with Contact Attempted',
+                'counts' => $this->format_date( $step, $this->contact_attempted( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
-            "first_meeting" => [
-                "label" => "Contacts with 1st Meeting Complete",
-                "counts" => $this->format_date( $step, $this->first_meeting( $option["format"], $option["start"], $date_start, $date_end ) ),
+            'first_meeting' => [
+                'label' => 'Contacts with 1st Meeting Complete',
+                'counts' => $this->format_date( $step, $this->first_meeting( $option['format'], $option['start'], $date_start, $date_end ) ),
             ],
         ];
 
         $fields = DT_Posts::get_post_settings( 'contacts' )['fields'];
 
         foreach ( $fields as $field_key => $value ){
-            if ( strpos( $field_key, "quick_button" ) !== false ) {
+            if ( strpos( $field_key, 'quick_button' ) !== false ) {
                 $advanced_metrics_count[$field_key] = [
-                    "label" => "Quick Action - " . $value['name'],
-                    "counts" => $this->format_date( $step, $this->quick_action_count( $field_key, $option["format"], $option["start"], $date_start, $date_end ) ),
+                    'label' => 'Quick Action - ' . $value['name'],
+                    'counts' => $this->format_date( $step, $this->quick_action_count( $field_key, $option['format'], $option['start'], $date_start, $date_end ) ),
                 ];
             }
         }
@@ -219,10 +219,10 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
     private function get_count_data_date_ranges( $step, $day, $metric, $date_start, $date_end ){
         $ranges = [];
 
-        switch ($metric){
+        switch ( $metric ){
             case 'new_contacts':
             case 'contacts_with_user_comments':
-                switch ($step){
+                switch ( $step ){
                     case 'all':
                         $ranges = [
                             'start' => $date_start,
@@ -256,7 +256,7 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
                 }
                 break;
             default:
-                switch ($step){
+                switch ( $step ){
                     case 'all':
                         $ranges = [
                             'start' => strtotime( $date_start ),
@@ -313,7 +313,7 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
         } elseif ( $step === 'all' ){
             foreach ( $counts as &$count ) {
                 $count['day_raw'] = $count['day'];
-                $count['day'] = "All";
+                $count['day'] = 'All';
             }
         } elseif ( $step === 'year' ){
             foreach ( $counts as &$count ){

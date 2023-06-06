@@ -7,7 +7,7 @@ if ( !defined( 'ABSPATH' ) ) {
 class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
 
     public $base_slug = 'disciple-tools-advanced-metrics'; // lowercase
-    public $base_title = "Advanced Metrics";
+    public $base_title = 'Advanced Metrics';
     public $namespace = 'dt/v1/advanced-metrics/';
 
     public $title = 'Streams';
@@ -55,14 +55,14 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
                 'stats' => [],
                 'rest_endpoints_base' => esc_url_raw( rest_url() ) . $this->namespace . $this->slug . '/',
                 'translations' => [
-                    "title" => $this->title,
-                    'filter_contacts_to_date_range' => __( "Filter contacts to date range:", 'disciple_tools' ),
-                    'all_time' => __( "All time", 'disciple_tools' ),
-                    'filter_to_date_range' => __( "Filter to date range", 'disciple_tools' ),
+                    'title' => $this->title,
+                    'filter_contacts_to_date_range' => __( 'Filter contacts to date range:', 'disciple_tools' ),
+                    'all_time' => __( 'All time', 'disciple_tools' ),
+                    'filter_to_date_range' => __( 'Filter to date range', 'disciple_tools' ),
                     'modal' => [
-                        'title' => __( "Advanced Stream Metrics", 'disciple_tools' ),
-                        'cancel_button' => __( "Cancel", 'disciple_tools' ),
-                        'table_head_title' => __( "Contact", 'disciple_tools' )
+                        'title' => __( 'Advanced Stream Metrics', 'disciple_tools' ),
+                        'cancel_button' => __( 'Cancel', 'disciple_tools' ),
+                        'table_head_title' => __( 'Contact', 'disciple_tools' )
                     ]
                 ]
             ]
@@ -74,14 +74,14 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
             $this->namespace . $this->slug, '/get-data', [
                 'methods'  => 'GET',
                 'callback' => [ $this, 'get_data' ],
-                'permission_callback' => [ $this, "has_permission" ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
         register_rest_route(
             $this->namespace . $this->slug, '/get-count-data', [
                 'methods'  => 'POST',
                 'callback' => [ $this, 'get_count_data' ],
-                'permission_callback' => [ $this, "has_permission" ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
     }
@@ -135,77 +135,77 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
     public function get_data( WP_REST_Request $request ){
         $params = $request->get_params();
 
-        $step = isset( $params["step"] ) ? $params["step"] : "year";
+        $step = isset( $params['step'] ) ? $params['step'] : 'year';
         $options = [
-            "all" => [
-                "format" =>'',
-                "start" => time() - 3600 * 24 * 365 * 40 // 40 years
+            'all' => [
+                'format' =>'',
+                'start' => time() - 3600 * 24 * 365 * 40 // 40 years
             ],
-            "year" => [
-                "format" =>'%Y',
-                "start" => time() - 3600 * 24 * 365 * 20 // 20 years
+            'year' => [
+                'format' =>'%Y',
+                'start' => time() - 3600 * 24 * 365 * 20 // 20 years
             ],
-            "month" => [
-                "format" =>'%Y-%m',
-                "start" => time() - 3600 * 24 * 365 * 3 // 3 year
+            'month' => [
+                'format' =>'%Y-%m',
+                'start' => time() - 3600 * 24 * 365 * 3 // 3 year
             ],
-            "week" => [
-                "format" =>'%YW%u',
-                "start" => time() - 3600 * 24 * 7 * 30 // 30 weeks
+            'week' => [
+                'format' =>'%YW%u',
+                'start' => time() - 3600 * 24 * 7 * 30 // 30 weeks
             ],
-            "day" => [
-                "format" =>'%Y-%m-%d',
-                "start" => time() - 3600 * 24 * 30 // 30 days
+            'day' => [
+                'format' =>'%Y-%m-%d',
+                'start' => time() - 3600 * 24 * 30 // 30 days
             ],
         ];
-        $option = isset( $step, $options[$params["step"]] ) ? $options[$params["step"]] : $options["year"];
+        $option = isset( $step, $options[$params['step']] ) ? $options[$params['step']] : $options['year'];
 
         $advanced_metrics_count = [
-            "new_contacts" => [
-                "label" => "New Contacts",
-                "counts" => $this->format_date( $step, $this->new_contacts( $option["format"], $option["start"] ) ),
+            'new_contacts' => [
+                'label' => 'New Contacts',
+                'counts' => $this->format_date( $step, $this->new_contacts( $option['format'], $option['start'] ) ),
             ],
-            "activity" => [
-                "label" => "Contacts with User Activity",
-                "counts" => $this->format_date( $step, $this->activity( $option["format"], $option["start"] ) ),
+            'activity' => [
+                'label' => 'Contacts with User Activity',
+                'counts' => $this->format_date( $step, $this->activity( $option['format'], $option['start'] ) ),
             ],
-            "contacts_with_user_comments" => [
-                "label" => "Contacts with User Comments",
-                "counts" => $this->format_date( $step, $this->contacts_with_user_comments( $option["format"], $option["start"] ) ),
+            'contacts_with_user_comments' => [
+                'label' => 'Contacts with User Comments',
+                'counts' => $this->format_date( $step, $this->contacts_with_user_comments( $option['format'], $option['start'] ) ),
             ],
-            "assignments" => [
-                "label" => "Contacts with User Assignment Change",
-                "counts" => $this->format_date( $step, $this->user_assignment_change( $option["format"], $option["start"] ) ),
+            'assignments' => [
+                'label' => 'Contacts with User Assignment Change',
+                'counts' => $this->format_date( $step, $this->user_assignment_change( $option['format'], $option['start'] ) ),
             ],
-            "active" => [
-                "label" => "Contacts with Status as Active",
-                "counts" => $this->format_date( $step, $this->became_active( $option["format"], $option["start"] ) ),
+            'active' => [
+                'label' => 'Contacts with Status as Active',
+                'counts' => $this->format_date( $step, $this->became_active( $option['format'], $option['start'] ) ),
             ],
-            "assigned_dispatch" => [
-                "label" => "Contacts Assigned for Dispatch",
-                "counts" => $this->format_date( $step, $this->assigned_for_dispatch( $option["format"], $option["start"] ) ),
+            'assigned_dispatch' => [
+                'label' => 'Contacts Assigned for Dispatch',
+                'counts' => $this->format_date( $step, $this->assigned_for_dispatch( $option['format'], $option['start'] ) ),
             ],
-            "assigned_follow_up" => [
-                "label" => "Contacts Assigned for Follow-up",
-                "counts" => $this->format_date( $step, $this->assigned_for_follow_up( $option["format"], $option["start"] ) ),
+            'assigned_follow_up' => [
+                'label' => 'Contacts Assigned for Follow-up',
+                'counts' => $this->format_date( $step, $this->assigned_for_follow_up( $option['format'], $option['start'] ) ),
             ],
-            "contact_attempted" => [
-                "label" => "Contacts with Contact Attempted",
-                "counts" => $this->format_date( $step, $this->contact_attempted( $option["format"], $option["start"] ) ),
+            'contact_attempted' => [
+                'label' => 'Contacts with Contact Attempted',
+                'counts' => $this->format_date( $step, $this->contact_attempted( $option['format'], $option['start'] ) ),
             ],
-            "first_meeting" => [
-                "label" => "Contacts with 1st Meeting Complete",
-                "counts" => $this->format_date( $step, $this->first_meeting( $option["format"], $option["start"] ) ),
+            'first_meeting' => [
+                'label' => 'Contacts with 1st Meeting Complete',
+                'counts' => $this->format_date( $step, $this->first_meeting( $option['format'], $option['start'] ) ),
             ],
         ];
 
         $fields = DT_Posts::get_post_settings( 'contacts' )['fields'];
 
         foreach ( $fields as $field_key => $value ){
-            if ( strpos( $field_key, "quick_button" ) !== false ) {
+            if ( strpos( $field_key, 'quick_button' ) !== false ) {
                 $advanced_metrics_count[$field_key] = [
-                    "label" => "Quick Action - " . $value['name'],
-                    "counts" => $this->format_date( $step, $this->quick_action_count( $field_key, $option["format"], $option["start"] ) ),
+                    'label' => 'Quick Action - ' . $value['name'],
+                    'counts' => $this->format_date( $step, $this->quick_action_count( $field_key, $option['format'], $option['start'] ) ),
                 ];
             }
         }
@@ -215,9 +215,9 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
     private function get_count_data_date_ranges( $step, $day, $metric ){
         $ranges = [];
 
-        switch ($metric){
+        switch ( $metric ){
             default:
-                switch ($step){
+                switch ( $step ){
                     case 'all':
                         $ranges = [
                             'start' => time() - 3600 * 24 * 365 * 40,
@@ -274,7 +274,7 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
         } elseif ( $step === 'all' ){
             foreach ( $counts as &$count ) {
                 $count['day_raw'] = $count['day'];
-                $count['day'] = "All";
+                $count['day'] = 'All';
             }
         } elseif ( $step === 'year' ){
             foreach ( $counts as &$count ){

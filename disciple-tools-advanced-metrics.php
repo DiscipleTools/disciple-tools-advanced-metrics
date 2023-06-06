@@ -2,7 +2,7 @@
 /**
  *Plugin Name: Disciple.Tools - Advanced Metrics
  * Plugin URI: https://github.com/DiscipleTools/disciple-tools-advanced-metrics
- * Description: Disciple.Tools - Advanced Metrics is intended to help developers and integrator jumpstart their extension of the Disciple.Tools system.
+ * Description:
  * Text Domain: disciple-tools-advanced-metrics
  * Domain Path: /languages
  * Version:  0.1
@@ -18,13 +18,6 @@
  *          https://www.gnu.org/licenses/gpl-2.0.html
  */
 
-/**
- * Refactoring (renaming) this plugin as your own:
- * 1. @todo Rename the `disciple-tools-advanced-metrics.php file.
- * 2. @todo Refactor all occurrences of the name DT_Advanced_Metrics, dt_advanced_metrics, disciple-tools-advanced-metrics, starter_post_type, and "Advanced Metrics"
- * 3. @todo Update the README.md and LICENSE
- * 4. @todo Update the default.pot file if you intend to make your plugin multilingual. Use a tool like POEdit
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
@@ -45,8 +38,8 @@ function dt_advanced_metrics() {
     /*
      * Check if the Disciple.Tools theme is loaded and is the latest required version
      */
-    $is_theme_dt = strpos( $wp_theme->get_template(), "disciple-tools-theme" ) !== false || $wp_theme->name === "Disciple Tools";
-    if ( $is_theme_dt && version_compare( $version, $dt_advanced_metrics_required_dt_theme_version, "<" ) ) {
+    $is_theme_dt = strpos( $wp_theme->get_template(), 'disciple-tools-theme' ) !== false || $wp_theme->name === 'Disciple Tools';
+    if ( $is_theme_dt && version_compare( $version, $dt_advanced_metrics_required_dt_theme_version, '<' ) ) {
         add_action( 'admin_notices', 'dt_advanced_metrics_hook_admin_notice' );
         add_action( 'wp_ajax_dismissed_notice_handler', 'dt_hook_ajax_notice_handler' );
         return false;
@@ -205,7 +198,7 @@ class DT_Advanced_Metrics {
      * @access public
      */
     public function __call( $method = '', $args = array() ) {
-        _doing_it_wrong( "dt_advanced_metrics::" . esc_html( $method ), 'Method does not exist.', '0.1' );
+        _doing_it_wrong( 'dt_advanced_metrics::' . esc_html( $method ), 'Method does not exist.', '0.1' );
         unset( $method, $args );
         return null;
     }
@@ -223,7 +216,7 @@ if ( ! function_exists( 'dt_advanced_metrics_hook_admin_notice' ) ) {
         $wp_theme = wp_get_theme();
         $current_version = $wp_theme->version;
         $message = "'Disciple.Tools - Advanced Metrics' plugin requires 'Disciple.Tools' theme to work. Please activate 'Disciple.Tools' theme or make sure it is latest version.";
-        if ( $wp_theme->get_template() === "disciple-tools-theme" ){
+        if ( $wp_theme->get_template() === 'disciple-tools-theme' ){
             $message .= ' ' . sprintf( esc_html( 'Current Disciple.Tools version: %1$s, required version: %2$s' ), esc_html( $current_version ), esc_html( $dt_advanced_metrics_required_dt_theme_version ) );
         }
         // Check if it's been dismissed...
@@ -252,11 +245,11 @@ if ( ! function_exists( 'dt_advanced_metrics_hook_admin_notice' ) ) {
 /**
  * AJAX handler to store the state of dismissible notices.
  */
-if ( !function_exists( "dt_hook_ajax_notice_handler" ) ){
+if ( !function_exists( 'dt_hook_ajax_notice_handler' ) ){
     function dt_hook_ajax_notice_handler(){
         check_ajax_referer( 'wp_rest_dismiss', 'security' );
-        if ( isset( $_POST["type"] ) ){
-            $type = sanitize_text_field( wp_unslash( $_POST["type"] ) );
+        if ( isset( $_POST['type'] ) ){
+            $type = sanitize_text_field( wp_unslash( $_POST['type'] ) );
             update_option( 'dismissed-' . $type, true );
         }
     }

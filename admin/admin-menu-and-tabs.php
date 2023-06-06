@@ -35,7 +35,7 @@ class DT_Advanced_Metrics_Menu {
      */
     public function __construct() {
 
-        add_action( "admin_menu", array( $this, "register_menu" ) );
+        add_action( 'admin_menu', array( $this, 'register_menu' ) );
 
     } // End __construct()
 
@@ -63,8 +63,8 @@ class DT_Advanced_Metrics_Menu {
             wp_die( 'You do not have sufficient permissions to access this page.' );
         }
 
-        if ( isset( $_GET["tab"] ) ) {
-            $tab = sanitize_key( wp_unslash( $_GET["tab"] ) );
+        if ( isset( $_GET['tab'] ) ) {
+            $tab = sanitize_key( wp_unslash( $_GET['tab'] ) );
         } else {
             $tab = 'general';
         }
@@ -82,11 +82,11 @@ class DT_Advanced_Metrics_Menu {
 
             <?php
             switch ( $tab ) {
-                case "general":
+                case 'general':
                     $object = new DT_Advanced_Metrics_Tab_General();
                     $object->content();
                     break;
-                case "second":
+                case 'second':
                     $object = new DT_Advanced_Metrics_Tab_Second();
                     $object->content();
                     break;
