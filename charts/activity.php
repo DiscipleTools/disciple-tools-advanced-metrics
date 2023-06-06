@@ -58,6 +58,11 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
                     'filter_contacts_to_date_range' => __( "Filter contacts to date range:", 'disciple_tools' ),
                     'all_time' => __( "All time", 'disciple_tools' ),
                     'filter_to_date_range' => __( "Filter to date range", 'disciple_tools' ),
+                    'modal' => [
+                        'title' => __( "Advanced Activity Metrics", 'disciple_tools' ),
+                        'cancel_button' => __( "Cancel", 'disciple_tools' ),
+                        'table_head_title' => __( "Contact", 'disciple_tools' )
+                    ]
                 ]
             ]
         );
@@ -71,6 +76,61 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
                 'permission_callback' => [ $this, "has_permission" ],
             ]
         );
+        register_rest_route(
+            $this->namespace . $this->slug, '/get-count-data', [
+                'methods'  => 'POST',
+                'callback' => [ $this, 'get_count_data' ],
+                'permission_callback' => [ $this, "has_permission" ],
+            ]
+        );
+    }
+
+    public function get_count_data( WP_REST_Request $request ){
+        $params = $request->get_params();
+        if ( isset( $params['step'], $params['metric_day'], $params['metric_key'] ) ){
+            $step = $params['step'];
+            $metric_day = $params['metric_day'];
+            $metric_key = $params['metric_key'];
+            $date_start = !empty( $params["date_start"] ) ? $params["date_start"] : "1970-01-01";
+            $date_end = !empty( $params["date_end"] ) ? $params["date_end"] : "2100-01-01";
+
+            // Format respective query date ranges.
+            $ranges = $this->get_count_data_date_ranges( $step, $metric_day, $metric_key, $date_start, $date_end );
+
+            // Fetch count data by incoming metric.
+            if ( $metric_key === 'new_contacts' ){
+                return $this->new_contacts_count_data( $ranges['start'], $ranges['end'] );
+
+            } elseif ( $metric_key === 'activity' ){
+                return $this->activity_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'contacts_with_user_comments' ){
+                return $this->contacts_with_user_comments_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'assignments' ){
+                return $this->user_assignment_change_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'active' ){
+                return $this->became_active_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'assigned_dispatch' ){
+                return $this->assigned_for_dispatch_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'assigned_follow_up' ){
+                return $this->assigned_for_follow_up_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'contact_attempted' ){
+                return $this->contact_attempted_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( $metric_key === 'first_meeting' ){
+                return $this->first_meeting_count_data( $ranges['start'], $ranges['end'], $date_start, $date_end );
+
+            } elseif ( strpos( $metric_key, 'quick_button' ) !== false ){
+                return $this->quick_action_count_count_data( $metric_key, $ranges['start'], $ranges['end'], $date_start, $date_end );
+            }
+        }
+
+        return [];
     }
 
     public function get_data( WP_REST_Request $request ){
@@ -156,22 +216,108 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
         return $advanced_metrics_count;
     }
 
+    private function get_count_data_date_ranges( $step, $day, $metric, $date_start, $date_end ){
+        $ranges = [];
+
+        switch ($metric){
+            case 'new_contacts':
+            case 'contacts_with_user_comments':
+                switch ($step){
+                    case 'all':
+                        $ranges = [
+                            'start' => $date_start,
+                            'end' => $date_end
+                        ];
+                        break;
+                    case 'year':
+                        $ranges = [
+                            'start' => $day . '-01-01',
+                            'end' => $day . '-12-31'
+                        ];
+                        break;
+                    case 'month':
+                        $ranges = [
+                            'start' => gmdate( 'Y-m-01', strtotime( $day ) ),
+                            'end' => gmdate( 'Y-m-t', strtotime( $day ) )
+                        ];
+                        break;
+                    case 'week':
+                        $ranges = [
+                            'start' => gmdate( 'Y-m-d', strtotime( $day ) ),
+                            'end' => gmdate( 'Y-m-d', strtotime( '+7 days', strtotime( $day ) ) )
+                        ];
+                        break;
+                    case 'day':
+                        $ranges = [
+                            'start' => $day,
+                            'end' => gmdate( 'Y-m-d', strtotime( '+1 days', strtotime( $day ) ) )
+                        ];
+                        break;
+                }
+                break;
+            default:
+                switch ($step){
+                    case 'all':
+                        $ranges = [
+                            'start' => strtotime( $date_start ),
+                            'end' => strtotime( $date_end )
+                        ];
+                        break;
+                    case 'year':
+                        $ranges = [
+                            'start' => strtotime( $day . '-01-01' ),
+                            'end' => strtotime( $day . '-12-31' )
+                        ];
+                        break;
+                    case 'month':
+                        $ranges = [
+                            'start' => strtotime( gmdate( 'Y-m-01', strtotime( $day ) ) ),
+                            'end' => strtotime( gmdate( 'Y-m-t', strtotime( $day ) ) )
+                        ];
+                        break;
+                    case 'week':
+                        $ranges = [
+                            'start' => strtotime( gmdate( 'Y-m-d', strtotime( $day ) ) ),
+                            'end' => strtotime( gmdate( 'Y-m-d', strtotime( '+7 days', strtotime( $day ) ) ) )
+                        ];
+                        break;
+                    case 'day':
+                        $ranges = [
+                            'start' => strtotime( $day . ' 00:00:00' ),
+                            'end' => strtotime( $day . ' 23:59:59' )
+                        ];
+                        break;
+                }
+                break;
+        }
+
+        return $ranges;
+    }
+
     private function format_date( $step = 'year', $counts = [] ){
         if ( $step === 'week' ){
             foreach ( $counts as &$count ) {
+                $count['day_raw'] = $count['day'];
                 $count['day'] = dt_format_date( $count['day'] );
             }
         } elseif ( $step === 'month' ){
             foreach ( $counts as &$count ) {
+                $count['day_raw'] = $count['day'];
                 $count['day'] = dt_format_date( $count['day'], 'M Y' );
             }
         } elseif ( $step === 'day' ){
             foreach ( $counts as &$count ) {
+                $count['day_raw'] = $count['day'];
                 $count['day'] = dt_format_date( $count['day'] );
             }
         } elseif ( $step === 'all' ){
             foreach ( $counts as &$count ) {
+                $count['day_raw'] = $count['day'];
                 $count['day'] = "All";
+            }
+        } elseif ( $step === 'year' ){
+            foreach ( $counts as &$count ){
+                $count['day_raw'] = $count['day'];
             }
         }
         return $counts;
@@ -196,6 +342,24 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
         return $r;
     }
 
+    private function new_contacts_count_data( $activity_start, $activity_end ){
+        global $wpdb;
+        $r = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->posts as p
+            WHERE post_type = 'contacts'
+            AND p.ID NOT IN (
+                SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'type' AND meta_value = 'user' GROUP BY post_id
+            )
+            AND post_date >= %s
+            AND post_date <= %s
+            ORDER BY p.post_title ASC
+            LIMIT 100
+        ", $activity_start, $activity_end ), ARRAY_A );
+
+        return $r;
+    }
+
     private function contacts_with_user_comments( $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
         $r = $wpdb->get_results( $wpdb->prepare( "
@@ -213,6 +377,23 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
         return $r;
     }
 
+    private function contacts_with_user_comments_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $r = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->comments
+            INNER JOIN $wpdb->posts as p ON ( p.ID = comment_post_ID AND post_date >= %s AND post_date < %s )
+            WHERE p.post_type = 'contacts'
+            AND comment_type = 'comment'
+            AND comment_date BETWEEN %s AND %s
+            AND user_id != 0
+            ORDER BY p.post_title ASC
+            LIMIT 100;
+        ", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
+
+        return $r;
+    }
+
     private function activity( $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
         $days_active_results = $wpdb->get_results( $wpdb->prepare( "
@@ -225,6 +406,21 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             AND hist_time > %s
             group by day
             ORDER BY day ASC", $format, $date_start, $date_end, $activity_start ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
+    private function activity_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE log.user_id != 0
+            AND ( object_type = 'contacts' OR object_type = 'Comments' )
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
 
         return $days_active_results;
     }
@@ -246,6 +442,22 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
         return $days_active_results;
     }
 
+    private function user_assignment_change_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE log.user_id != 0
+            AND object_type = 'contacts'
+            AND meta_key = 'assigned_to'
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
     private function became_active( $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
         $days_active_results = $wpdb->get_results( $wpdb->prepare( "
@@ -259,6 +471,22 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             AND hist_time > %s
             group by day
             ORDER BY day ASC", $format, $date_start, $date_end, $activity_start ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
+    private function became_active_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE object_type = 'contacts'
+            AND meta_key = 'overall_status'
+            AND meta_value = 'active'
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
 
         return $days_active_results;
     }
@@ -279,6 +507,23 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
 
         return $days_active_results;
     }
+
+    private function assigned_for_follow_up_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE object_type = 'contacts'
+            AND meta_key = 'reason_assigned_to'
+            AND meta_value = 'follow-up'
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
     private function assigned_for_dispatch( $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
         $days_active_results = $wpdb->get_results( $wpdb->prepare( "
@@ -292,6 +537,22 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             AND hist_time > %s
             group by day
             ORDER BY day ASC", $format, $date_start, $date_end, $activity_start ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
+    private function assigned_for_dispatch_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE object_type = 'contacts'
+            AND meta_key = 'reason_assigned_to'
+            AND meta_value = 'dispatch'
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
 
         return $days_active_results;
     }
@@ -312,6 +573,23 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
 
         return $days_active_results;
     }
+
+    private function first_meeting_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE object_type = 'contacts'
+            AND meta_key = 'seeker_path'
+            AND meta_value = 'met'
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
     private function contact_attempted( $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
         $days_active_results = $wpdb->get_results( $wpdb->prepare( "
@@ -329,6 +607,21 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
         return $days_active_results;
     }
 
+    private function contact_attempted_count_data( $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE object_type = 'contacts'
+            AND meta_key = 'seeker_path'
+            AND meta_value = 'attempted'
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $activity_start, $activity_end ), ARRAY_A );
+
+        return $days_active_results;
+    }
 
     private function quick_action_count( $quick_action_label, $format, $activity_start, $date_start, $date_end ){
         global $wpdb;
@@ -342,6 +635,21 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
             AND hist_time > %s
             group by day
             ORDER BY day ASC", $format, $date_start, $date_end, $quick_action_label, $activity_start ), ARRAY_A );
+
+        return $days_active_results;
+    }
+
+    private function quick_action_count_count_data( $quick_action_label, $activity_start, $activity_end, $date_start, $date_end ){
+        global $wpdb;
+        $days_active_results = $wpdb->get_results( $wpdb->prepare( "
+            SELECT DISTINCT p.ID id, p.post_title title
+            FROM $wpdb->dt_activity_log as log
+            INNER JOIN $wpdb->posts as p ON ( p.ID = object_id AND post_date >= %s AND post_date < %s )
+            WHERE object_type = 'contacts'
+            AND meta_key = %s
+            AND hist_time BETWEEN %s AND %s
+            ORDER BY p.post_title ASC
+            LIMIT 100", $date_start, $date_end, $quick_action_label, $activity_start, $activity_end ), ARRAY_A );
 
         return $days_active_results;
     }

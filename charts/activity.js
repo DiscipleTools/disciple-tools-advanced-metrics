@@ -20,6 +20,33 @@ jQuery(document).ready(function() {
     date_end = moment(date_start).add( 1, step ).format("Y-MM-DD")
   }
 
+  let build_modal_html = () => {
+    return `
+        <div class="reveal medium" id="advanced_metrics_modal" data-reveal data-reset-on-close>
+            <h3 id="advanced_metrics_modal_title">${ _.escape(window.wp_js_object.translations.modal.title) }</h3>
+
+            <br>
+            <div style="overflow: auto; max-height: 400px;">
+              <table>
+                  <thead>
+                      <th>${_.escape(window.wp_js_object.translations.modal.table_head_title)}</th>
+                  </thead>
+                  <tbody id="advanced_metrics_modal_table_body"></tbody>
+              </table>
+            </div>
+
+            <br>
+            <button class="button loader" data-close aria-label="Close reveal" type="button">
+                ${ _.escape(window.wp_js_object.translations.modal.cancel_button) }
+            </button>
+
+            <button class="close-button" data-close aria-label="Close" type="button">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+  };
+
   chartDiv.empty().html(`
     <div class="section-header">${ _.escape(window.wp_js_object.translations.title) }</div>
     <div style="display: inline-block" class="loading-spinner active"></div>
@@ -45,7 +72,11 @@ jQuery(document).ready(function() {
         </tbody>
       </table>
     </div>
+    ${ build_modal_html() }
   `)
+
+  // Instantiate main advanced metrics modal.
+  new Foundation.Reveal($('#advanced_metrics_modal'));
 
   let display_data = (data)=>{
     let days = [];
@@ -71,7 +102,7 @@ jQuery(document).ready(function() {
         field_value.counts.forEach(c=> {
           if (c.day===d) {
             has = true
-            html += `<td>${_.escape(c.count)}</td>`
+            html += `<td><a href="#" class="metric-count-button" data-step="${step}" data-metric_day="${_.escape(c.day_raw)}" data-metric_key="${_.escape(field_key)}" data-metric_label="${_.escape(field_value.label)}">${_.escape(c.count)}</a></td>`
           }
         })
         if ( !has ){
@@ -92,13 +123,65 @@ jQuery(document).ready(function() {
 
   }
 
+  $(document).on("click", '.metric-count-button', function () {
+    let modal = $('#advanced_metrics_modal');
+    $(modal).find('#advanced_metrics_modal_title').html($(this).data('metric_label'));
+    $(modal).find('#advanced_metrics_modal_table_body').empty();
+    $(modal).data('step', $(this).data('step'));
+    $(modal).data('metric_day', $(this).data('metric_day'));
+    $(modal).data('metric_key', $(this).data('metric_key'));
+    modal.foundation('open');
+  });
 
+  $(document).on('open.zf.reveal', '[data-reveal]', function (evt) {
+    let modal = $(evt.currentTarget);
+    let params = {
+      'step': $(modal).data('step'),
+      'metric_day': $(modal).data('metric_day'),
+      'metric_key': $(modal).data('metric_key'),
+      'date_start': date_start,
+      'date_end': date_end
+    };
+
+    jQuery.ajax({
+      type: "POST",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      data: JSON.stringify(params),
+      url: `${wp_js_object.rest_endpoints_base}get-count-data`,
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-WP-Nonce', wpApiShare.nonce);
+      },
+    })
+    .done(function (data) {
+      let modal = $('#advanced_metrics_modal');
+      let modal_tbody = $(modal).find('#advanced_metrics_modal_table_body');
+
+      // Display count contact details.
+      modal_tbody.fadeOut('fast', function () {
+        modal_tbody.empty();
+        data.forEach(function (post) {
+          if (post['id'] && post['title']) {
+            let post_url = wpApiShare.site_url + '/contacts/' + post['id'];
+            modal_tbody.append(`
+                <tr>
+                    <td><a href="${post_url}" target="_blank">${window.lodash.escape(post['title'])}</a></td>
+                </tr>
+              `);
+          }
+        });
+
+        modal_tbody.fadeIn('fast');
+      });
+    });
+  });
+
+  $(document).on('closed.zf.reveal', '[data-reveal]', function (evt) {
+  });
 
   $(document).on("click", '#clear-date-range', function () {
     window.location = `${window.wpApiShare.site_url}/metrics/advanced-metrics/activity`
   })
-
-
 
   let get_data = ( ) =>{
      $(".loading-spinner").addClass("active")
