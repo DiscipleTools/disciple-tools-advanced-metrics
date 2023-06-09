@@ -10,6 +10,8 @@ jQuery(document).ready(function() {
         <div class="reveal medium" id="advanced_metrics_modal" data-reveal data-reset-on-close>
             <h3 id="advanced_metrics_modal_title">${ _.escape(window.wp_js_object.translations.modal.title) }</h3>
 
+            <div id="advanced_metrics_modal_loading_spinner" class="loading-spinner" style="display: inline-block"></div>
+
             <br>
             <div style="overflow: auto; max-height: 400px;">
               <table>
@@ -118,6 +120,9 @@ jQuery(document).ready(function() {
       'metric_key': $(modal).data('metric_key')
     };
 
+    let modal_spinner = $('#advanced_metrics_modal_loading_spinner');
+    modal_spinner.addClass('active');
+
     jQuery.ajax({
       type: "POST",
       contentType: "application/json; charset=utf-8",
@@ -129,6 +134,7 @@ jQuery(document).ready(function() {
       },
     })
     .done(function (data) {
+      modal_spinner.removeClass('active');
       let modal = $('#advanced_metrics_modal');
       let modal_tbody = $(modal).find('#advanced_metrics_modal_table_body');
 
