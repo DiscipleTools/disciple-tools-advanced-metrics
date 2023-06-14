@@ -20,9 +20,13 @@ class DT_Advanced_Metrics_Charts
         require_once( 'streams.php' );
         new DT_Advanced_Metrics_Chart_Activity();
         new DT_Advanced_Metrics_Chart_Streams();
+
         /**
          * @todo add other charts like the pattern above here
          */
+
+        require_once( 'contact-location-by-country.php' );
+        new DT_Advanced_Metrics_Chart_Contact_Location_By_Country();
 
     } // End __construct
 }
