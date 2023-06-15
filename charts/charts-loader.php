@@ -25,7 +25,7 @@ class DT_Advanced_Metrics_Charts
          * @todo add other charts like the pattern above here
          */
 
-        require_once( 'contact-location-by-country.php' );
+        require_once( 'contact-location-by-un-region.php' );
         new DT_Advanced_Metrics_Chart_Contact_Location_By_Country();
 
     } // End __construct

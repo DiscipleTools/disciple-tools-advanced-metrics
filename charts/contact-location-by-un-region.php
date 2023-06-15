@@ -9,11 +9,11 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
     public $base_title = 'Advanced Metrics';
     public $namespace = 'dt/v1/advanced-metrics/';
 
-    public $title = 'Contact Locations By Country';
-    public $slug = 'contact-location-by-country'; // lowercase
+    public $title = 'Contact Locations By UN Region';
+    public $slug = 'contact-location-by-un-region'; // lowercase
     public $js_object_name = 'wp_js_object'; // This object will be loaded into the metrics.js file by the wp_localize_script.
-    public $js_file_name = 'contact-location-by-country.js'; // should be full file name plus extension
-    public $deep_link_hash = '#contact-location-by-country'; // should be the full hash name. #example_of_hash
+    public $js_file_name = 'contact-location-by-un-region.js'; // should be full file name plus extension
+    public $deep_link_hash = '#contact-location-by-un-region'; // should be the full hash name. #example_of_hash
     public $permissions = [ 'dt_all_access_contacts', 'view_project_metrics' ];
 
     public function __construct() {
@@ -35,7 +35,7 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
     public function scripts() {
         wp_register_script( 'amcharts-index', 'https://cdn.amcharts.com/lib/5/index.js', false, '5' );
         wp_register_script( 'amcharts-map', 'https://cdn.amcharts.com/lib/5/map.js', false, '5' );
-        wp_register_script( 'amcharts-world-low', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js', false, '5' );
+        wp_register_script( 'amcharts-un-regions-low', 'https://cdn.amcharts.com/lib/5/geodata/unRegionsLow.js', false, '5' );
         wp_register_script( 'amcharts-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js', false, '5' );
 
         wp_enqueue_script( 'dt_'.$this->slug.'_script', trailingslashit( plugin_dir_url( __FILE__ ) ) . $this->js_file_name, [
@@ -43,7 +43,7 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
             'jquery-ui-core',
             'amcharts-index',
             'amcharts-map',
-            'amcharts-world-low',
+            'amcharts-un-regions-low',
             'amcharts-animated'
         ], filemtime( plugin_dir_path( __FILE__ ) .$this->js_file_name ), true );
 
@@ -57,7 +57,30 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
                 'stats' => [],
                 'rest_endpoints_base' => esc_url_raw( rest_url() ) . $this->namespace . $this->slug . '/',
                 'translations' => [
-                    'title' => $this->title
+                    'title' => $this->title,
+                    'regions' => [
+                        'northAmerica' => esc_attr( __( 'North America', 'disciple_tools' ) ),
+                        'centralAmerica' => esc_attr( __( 'Central America', 'disciple_tools' ) ),
+                        'southAmerica' => esc_attr( __( 'South America', 'disciple_tools' ) ),
+                        'polynesia' => esc_attr( __( 'Polynesia', 'disciple_tools' ) ),
+                        'caribbean' => esc_attr( __( 'Caribbean', 'disciple_tools' ) ),
+                        'northAfrica' => esc_attr( __( 'Northern Africa', 'disciple_tools' ) ),
+                        'westAfrica' => esc_attr( __( 'Western Africa', 'disciple_tools' ) ),
+                        'eastAfrica' => esc_attr( __( 'Eastern Africa', 'disciple_tools' ) ),
+                        'middleAfrica' => esc_attr( __( 'Middle Africa', 'disciple_tools' ) ),
+                        'southAfrica' => esc_attr( __( 'Southern Africa', 'disciple_tools' ) ),
+                        'northEurope' => esc_attr( __( 'Northern Europe', 'disciple_tools' ) ),
+                        'westEurope' => esc_attr( __( 'Western Europe', 'disciple_tools' ) ),
+                        'eastEurope' => esc_attr( __( 'Eastern Europe', 'disciple_tools' ) ),
+                        'southEurope' => esc_attr( __( 'Southern Europe', 'disciple_tools' ) ),
+                        'westAsia' => esc_attr( __( 'Western Asia', 'disciple_tools' ) ),
+                        'centralAsia' => esc_attr( __( 'Central Asia', 'disciple_tools' ) ),
+                        'southAsia' => esc_attr( __( 'Southern Asia', 'disciple_tools' ) ),
+                        'eastAsia' => esc_attr( __( 'Eastern Asia', 'disciple_tools' ) ),
+                        'southeastAsia' => esc_attr( __( 'Southeastern Asia', 'disciple_tools' ) ),
+                        'melanesia' => esc_attr( __( 'Melanesia', 'disciple_tools' ) ),
+                        'australiaNZ' => esc_attr( __( 'Australia and New Zealand', 'disciple_tools' ) )
+                    ]
                 ]
             ]
         );
@@ -151,7 +174,10 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
 
         return [
             'posts' => $posts,
-            'stats' => $this->generate_contact_locations_by_country( $posts )
+            'stats' => [
+                'countries' => $this->generate_contact_locations_by_country( $posts ),
+                'regions' => $this->generate_contact_locations_by_un_regions( $posts )
+            ]
         ];
     }
 
@@ -217,7 +243,94 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
             }
         }
 
+        // Sort stats by count in descending order.
+        usort( $stats, function ( $a, $b ){
+            return $a['count'] < $b['count'];
+        } );
+
         return $stats;
+    }
+
+    private function generate_contact_locations_by_un_regions( $posts ){
+        $stats = [];
+        foreach ( $posts as $post ){
+            $already_assigned_region = [];
+            foreach ( $post['locations'] as $location ){
+                $region_name = !empty( $location['iso']['intermediate_region'] ) ? $location['iso']['intermediate_region'] : $location['iso']['sub_region'];
+                $region = $this->determine_un_region_id( $region_name );
+                if ( isset( $location['iso'] ) && !empty( $region ) && !in_array( $region, $already_assigned_region ) ){
+
+                    // Keep a record, to avoid double counting for the same post on the same region!
+                    $already_assigned_region[] = $region;
+
+                    // Increment stat count accordingly.
+                    if ( !isset( $stats[$region] ) ){
+                        $stats[$region] = [
+                            'region' => $region,
+                            'name' => $region_name,
+                            'count' => 0
+                        ];
+                    }
+                    $stats[$region]['count']++;
+                }
+            }
+        }
+
+        // Sort stats by count in descending order.
+        usort( $stats, function ( $a, $b ){
+            return $a['count'] < $b['count'];
+        } );
+
+        return $stats;
+    }
+
+    private function determine_un_region_id( $region ){
+        switch ( strtolower( trim( $region ) ) ){
+            case 'northern america':
+                return 'northAmerica';
+            case 'central america':
+                return 'centralAmerica';
+            case 'south america':
+                return 'southAmerica';
+            case 'polynesia':
+                return 'polynesia';
+            case 'caribbean':
+                return 'caribbean';
+            case 'northern africa':
+                return 'northAfrica';
+            case 'western africa':
+                return 'westAfrica';
+            case 'eastern africa':
+                return 'eastAfrica';
+            case 'middle africa':
+                return 'middleAfrica';
+            case 'southern africa':
+                return 'southAfrica';
+            case 'northern europe':
+                return 'northEurope';
+            case 'western europe':
+                return 'westEurope';
+            case 'eastern europe':
+                return 'eastEurope';
+            case 'southern europe':
+                return 'southEurope';
+            case 'western asia':
+                return 'westAsia';
+            case 'central asia':
+                return 'centralAsia';
+            case 'southern asia':
+                return 'southAsia';
+            case 'eastern asia':
+                return 'eastAsia';
+            case 'south-eastern asia':
+                return 'southeastAsia';
+            case 'melanesia':
+                return 'melanesia';
+            case 'australia and new zealand':
+                return 'australiaNZ';
+            default:
+                return '';
+        }
     }
 
 }
