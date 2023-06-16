@@ -169,7 +169,6 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
         }
 
         return [
-            'posts' => $posts,
             'stats' => [
                 'regions' => $this->generate_contact_locations_by_un_regions( $posts )
             ]
