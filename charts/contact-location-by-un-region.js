@@ -60,10 +60,6 @@ jQuery(document).ready(function () {
       templateField: "polygonSettings"
     });
 
-    polygonSeries.mapPolygons.template.states.create("hover", {
-      fill: am5.color(0x677935)
-    });
-
     // Fetch latest snapshot data.
     get_data(function (response) {
 
@@ -89,6 +85,10 @@ jQuery(document).ready(function () {
 
           if (data.length > 0) {
             polygonSeries.data.setAll(data);
+
+            polygonSeries.mapPolygons.template.states.create("hover", {
+              fill: am5.color(0x677935)
+            });
           }
         }
       }

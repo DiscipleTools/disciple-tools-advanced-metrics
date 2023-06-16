@@ -97,18 +97,18 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
     }
 
     public function get_data( WP_REST_Request $request ){
-        $params = $request->get_params();
+        global $wpdb;
 
         // List all contacts with current locations.
-        $posts_list = DT_Posts::list_posts( 'contacts', [
-            'limit' => 1000,
-            'fields' => [
-                [
-                    'assigned_to' => [ 'me' ]
-                ]
-            ],
-            'fields_to_return' => [ 'location_grid' ]
-        ], false );
+        // phpcs:disable
+        $posts_list = $wpdb->get_results( $wpdb->prepare( "
+            SELECT p.ID id, p.post_title title, lgm.grid_id location_grid
+              FROM $wpdb->posts p
+              INNER JOIN $wpdb->postmeta pm ON ( p.ID = pm.post_id AND pm.meta_key = 'location_grid' AND pm.meta_value LIKE '%' )
+              INNER JOIN $wpdb->dt_location_grid_meta lgm ON ( p.ID = lgm.post_id AND p.post_type = 'contacts' AND p.post_status = 'publish' )
+              GROUP BY p.ID, lgm.grid_id
+        " ), ARRAY_A );
+        // phpcs:enable
 
         // Load iso country codes.
         $country_codes_cache = [];
@@ -117,57 +117,53 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
         // Extract valid locations.
         $posts = [];
         $geocoder = new Location_Grid_Geocoder();
-        foreach ( $posts_list['posts'] ?? [] as $post ){
-
+        foreach ( $posts_list ?? [] as $post ){
             $locations = [];
+            if ( !empty( $post['location_grid'] ) ){
 
-            foreach ( $post['location_grid'] ?? [] as $location ){
-                if ( !empty( $location['id'] ) ){
-
-                    // Decode and merge location ids with iso country codes.
-                    $grid = $geocoder->query_by_grid_id( $location['id'] );
-                    if ( isset( $grid, $grid['country_code'] ) ){
-                        $code = $grid['country_code'];
-                        if ( empty( $country_codes_cache[$code] ) ){
-                            $iso_country_code = $this->extract_iso_country_code( $country_codes, $code );
-                            if ( !empty( $iso_country_code ) ){
-                                $country_codes_cache[$code] = $iso_country_code;
-                            }
+                // Decode and merge location ids with iso country codes.
+                $grid = $geocoder->query_by_grid_id( $post['location_grid'] );
+                if ( isset( $grid, $grid['country_code'] ) ){
+                    $code = $grid['country_code'];
+                    if ( empty( $country_codes_cache[$code] ) ){
+                        $iso_country_code = $this->extract_iso_country_code( $country_codes, $code );
+                        if ( !empty( $iso_country_code ) ){
+                            $country_codes_cache[$code] = $iso_country_code;
                         }
+                    }
 
-                        // Package location findings accordingly.
-                        if ( !empty( $country_codes_cache[$code] ) ){
-                            $iso_country_code = $country_codes_cache[$code];
+                    // Package location findings accordingly.
+                    if ( !empty( $country_codes_cache[$code] ) ){
+                        $iso_country_code = $country_codes_cache[$code];
 
-                            $locations[] = [
-                                'grid' => [
-                                    'id' => $grid['grid_id'],
-                                    'name' => $grid['name'],
-                                    'longitude' => $grid['longitude'],
-                                    'latitude' => $grid['latitude']
-                                ],
-                                'iso' => [
-                                    'name' => $iso_country_code[0],
-                                    'alpha_2' => $iso_country_code[1],
-                                    'alpha_3' => $iso_country_code[2],
-                                    'country_code' => $iso_country_code[3],
-                                    'iso_3166_2' => $iso_country_code[4],
-                                    'region' => $iso_country_code[5],
-                                    'sub_region' => $iso_country_code[6],
-                                    'intermediate_region' => $iso_country_code[7],
-                                    'region_code' => $iso_country_code[8],
-                                    'sub_region_code' => $iso_country_code[9],
-                                    'intermediate_region_code' => $iso_country_code[10]
-                                ]
-                            ];
-                        }
+                        $locations[] = [
+                            'grid' => [
+                                'id' => $grid['grid_id'],
+                                'name' => $grid['name'],
+                                'longitude' => $grid['longitude'],
+                                'latitude' => $grid['latitude']
+                            ],
+                            'iso' => [
+                                'name' => $iso_country_code[0],
+                                'alpha_2' => $iso_country_code[1],
+                                'alpha_3' => $iso_country_code[2],
+                                'country_code' => $iso_country_code[3],
+                                'iso_3166_2' => $iso_country_code[4],
+                                'region' => $iso_country_code[5],
+                                'sub_region' => $iso_country_code[6],
+                                'intermediate_region' => $iso_country_code[7],
+                                'region_code' => $iso_country_code[8],
+                                'sub_region_code' => $iso_country_code[9],
+                                'intermediate_region_code' => $iso_country_code[10]
+                            ]
+                        ];
                     }
                 }
             }
 
             $posts[] = [
-                'id' => $post['ID'],
-                'title' => $post['post_title'],
+                'id' => $post['id'],
+                'title' => $post['title'],
                 'locations' => $locations
             ];
         }
@@ -175,7 +171,6 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
         return [
             'posts' => $posts,
             'stats' => [
-                'countries' => $this->generate_contact_locations_by_country( $posts ),
                 'regions' => $this->generate_contact_locations_by_un_regions( $posts )
             ]
         ];
@@ -217,38 +212,6 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
         }
 
         return [];
-    }
-
-    private function generate_contact_locations_by_country( $posts ){
-        $stats = [];
-        foreach ( $posts as $post ){
-            $already_assigned_country = [];
-            foreach ( $post['locations'] as $location ){
-                $code = $location['iso']['alpha_2'];
-                if ( isset( $location['iso'] ) && !empty( $code ) && !in_array( $code, $already_assigned_country ) ){
-
-                    // Keep a record, to avoid double counting for the same post on the same country!
-                    $already_assigned_country[] = $code;
-
-                    // Increment stat count accordingly.
-                    if ( !isset( $stats[$code] ) ){
-                        $stats[$code] = [
-                            'code' => $code,
-                            'name' => $location['iso']['name'] ?? '',
-                            'count' => 0
-                        ];
-                    }
-                    $stats[$code]['count']++;
-                }
-            }
-        }
-
-        // Sort stats by count in descending order.
-        usort( $stats, function ( $a, $b ){
-            return $a['count'] < $b['count'];
-        } );
-
-        return $stats;
     }
 
     private function generate_contact_locations_by_un_regions( $posts ){
