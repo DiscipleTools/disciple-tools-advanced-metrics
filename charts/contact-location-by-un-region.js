@@ -52,9 +52,10 @@ jQuery(document).ready(function () {
     );
 
     polygonSeries.mapPolygons.template.setAll({
-      stroke: am5.color(0xffffff),
+      stroke: am5.color('#FFFFFF'),
       strokeWidth: 2,
       fillOpacity: 0.2,
+      fill: am5.color('#808080'),
       tooltipText: "{name}: {value}",
       interactive: true,
       templateField: "polygonSettings"
@@ -62,7 +63,6 @@ jQuery(document).ready(function () {
 
     // Fetch latest snapshot data.
     get_data(function (response) {
-
       if (response && response['stats'] && response['stats']['regions']) {
         let regions = response['stats']['regions'];
         let regionWithMinCount = _.minBy(regions, 'count');
@@ -78,7 +78,8 @@ jQuery(document).ready(function () {
               'name': `${_.escape(window.wp_js_object.translations.regions[region['region']])}`,
               'value': region['count'],
               'polygonSettings': {
-                'fillOpacity': (opacity > 0.3) ? opacity : (0.3 + opacity)
+                'fillOpacity': (opacity > 0.3) ? opacity : (0.3 + opacity),
+                'fill': am5.color('#0000FF')
               }
             });
           });
@@ -87,7 +88,8 @@ jQuery(document).ready(function () {
             polygonSeries.data.setAll(data);
 
             polygonSeries.mapPolygons.template.states.create("hover", {
-              fill: am5.color(0x677935)
+              fillOpacity: 1.0,
+              fill: am5.color('#000000')
             });
           }
         }
