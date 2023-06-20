@@ -118,8 +118,6 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
         $countries = $this->get_countries();
 
         // Extract valid locations.
-        $geocoder = new Location_Grid_Geocoder();
-        $location_grid_cache = [];
         $stat_regions = [];
         $already_assigned_grid = [];
         foreach ( $location_grid_counts ?? [] as $location_grid ){
@@ -127,20 +125,10 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
                 $location_grid_id = $location_grid['location_grid'];
                 $location_grid_count = $location_grid['count'];
 
-                // Load corresponding location grid information.
-                if ( !empty( $location_grid_cache[$location_grid_id] ) ){
-                    $grid = $location_grid_cache[$location_grid_id];
-                } else {
-                    $grid = $geocoder->query_by_grid_id( $location_grid_id );
-                    if ( isset( $grid, $grid['country_code'] ) ){
-                        $location_grid_cache[$location_grid_id] = $grid;
-                    }
-                }
-
-                // Decode and merge location ids with iso country region codes.
-                if ( isset( $grid, $grid['country_code'], $countries[$grid['country_code']] ) ){
-                    $country = $countries[$grid['country_code']];
-                    $region_name = !empty( $country['intermediate_region'] ) ? $country['intermediate_region'] : $country['sub_region'];
+               // Decode and merge location ids with iso country region codes.
+                if ( isset( $countries[$location_grid_id] ) ){
+                    $country = $countries[$location_grid_id];
+                    $region_name = $country['un_region'];
                     $region = $this->determine_un_region_id( $region_name );
                     if ( !empty( $region ) && !in_array( $location_grid_id, $already_assigned_grid ) ){
 
@@ -224,3242 +212,1250 @@ class DT_Advanced_Metrics_Chart_Contact_Location_By_Country extends DT_Metrics_C
 
     private function get_countries(){
         return [
-            'AF' => [
-                'name' => 'Afghanistan',
-                'alpha_2' => 'AF',
-                'alpha_3' => 'AFG',
-                'country_code' => '004',
-                'iso_3166_2' => 'ISO 3166-2:AF',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'AX' => [
-                'name' => 'Åland Islands',
-                'alpha_2' => 'AX',
-                'alpha_3' => 'ALA',
-                'country_code' => '248',
-                'iso_3166_2' => 'ISO 3166-2:AX',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'AL' => [
-                'name' => 'Albania',
-                'alpha_2' => 'AL',
-                'alpha_3' => 'ALB',
-                'country_code' => '008',
-                'iso_3166_2' => 'ISO 3166-2:AL',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'DZ' => [
-                'name' => 'Algeria',
-                'alpha_2' => 'DZ',
-                'alpha_3' => 'DZA',
-                'country_code' => '012',
-                'iso_3166_2' => 'ISO 3166-2:DZ',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'AS' => [
-                'name' => 'American Samoa',
-                'alpha_2' => 'AS',
-                'alpha_3' => 'ASM',
-                'country_code' => '016',
-                'iso_3166_2' => 'ISO 3166-2:AS',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'AD' => [
-                'name' => 'Andorra',
-                'alpha_2' => 'AD',
-                'alpha_3' => 'AND',
-                'country_code' => '020',
-                'iso_3166_2' => 'ISO 3166-2:AD',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'AO' => [
-                'name' => 'Angola',
-                'alpha_2' => 'AO',
-                'alpha_3' => 'AGO',
-                'country_code' => '024',
-                'iso_3166_2' => 'ISO 3166-2:AO',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'AI' => [
-                'name' => 'Anguilla',
-                'alpha_2' => 'AI',
-                'alpha_3' => 'AIA',
-                'country_code' => '660',
-                'iso_3166_2' => 'ISO 3166-2:AI',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'AQ' => [
-                'name' => 'Antarctica',
-                'alpha_2' => 'AQ',
-                'alpha_3' => 'ATA',
-                'country_code' => '010',
-                'iso_3166_2' => 'ISO 3166-2:AQ',
-                'region' => '',
-                'sub_region' => '',
-                'intermediate_region' => '',
-                'region_code' => '',
-                'sub_region_code' => '',
-                'intermediate_region_code' => ''
-            ],
-            'AG' => [
-                'name' => 'Antigua and Barbuda',
-                'alpha_2' => 'AG',
-                'alpha_3' => 'ATG',
-                'country_code' => '028',
-                'iso_3166_2' => 'ISO 3166-2:AG',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'AR' => [
-                'name' => 'Argentina',
-                'alpha_2' => 'AR',
-                'alpha_3' => 'ARG',
-                'country_code' => '032',
-                'iso_3166_2' => 'ISO 3166-2:AR',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'AM' => [
-                'name' => 'Armenia',
-                'alpha_2' => 'AM',
-                'alpha_3' => 'ARM',
-                'country_code' => '051',
-                'iso_3166_2' => 'ISO 3166-2:AM',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'AW' => [
-                'name' => 'Aruba',
-                'alpha_2' => 'AW',
-                'alpha_3' => 'ABW',
-                'country_code' => '533',
-                'iso_3166_2' => 'ISO 3166-2:AW',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'AU' => [
-                'name' => 'Australia',
-                'alpha_2' => 'AU',
-                'alpha_3' => 'AUS',
-                'country_code' => '036',
-                'iso_3166_2' => 'ISO 3166-2:AU',
-                'region' => 'Oceania',
-                'sub_region' => 'Australia and New Zealand',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '053',
-                'intermediate_region_code' => ''
-            ],
-            'AT' => [
-                'name' => 'Austria',
-                'alpha_2' => 'AT',
-                'alpha_3' => 'AUT',
-                'country_code' => '040',
-                'iso_3166_2' => 'ISO 3166-2:AT',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'AZ' => [
-                'name' => 'Azerbaijan',
-                'alpha_2' => 'AZ',
-                'alpha_3' => 'AZE',
-                'country_code' => '031',
-                'iso_3166_2' => 'ISO 3166-2:AZ',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'BS' => [
-                'name' => 'Bahamas',
-                'alpha_2' => 'BS',
-                'alpha_3' => 'BHS',
-                'country_code' => '044',
-                'iso_3166_2' => 'ISO 3166-2:BS',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'BH' => [
-                'name' => 'Bahrain',
-                'alpha_2' => 'BH',
-                'alpha_3' => 'BHR',
-                'country_code' => '048',
-                'iso_3166_2' => 'ISO 3166-2:BH',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'BD' => [
-                'name' => 'Bangladesh',
-                'alpha_2' => 'BD',
-                'alpha_3' => 'BGD',
-                'country_code' => '050',
-                'iso_3166_2' => 'ISO 3166-2:BD',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'BB' => [
-                'name' => 'Barbados',
-                'alpha_2' => 'BB',
-                'alpha_3' => 'BRB',
-                'country_code' => '052',
-                'iso_3166_2' => 'ISO 3166-2:BB',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'BY' => [
-                'name' => 'Belarus',
-                'alpha_2' => 'BY',
-                'alpha_3' => 'BLR',
-                'country_code' => '112',
-                'iso_3166_2' => 'ISO 3166-2:BY',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'BE' => [
-                'name' => 'Belgium',
-                'alpha_2' => 'BE',
-                'alpha_3' => 'BEL',
-                'country_code' => '056',
-                'iso_3166_2' => 'ISO 3166-2:BE',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'BZ' => [
-                'name' => 'Belize',
-                'alpha_2' => 'BZ',
-                'alpha_3' => 'BLZ',
-                'country_code' => '084',
-                'iso_3166_2' => 'ISO 3166-2:BZ',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'BJ' => [
-                'name' => 'Benin',
-                'alpha_2' => 'BJ',
-                'alpha_3' => 'BEN',
-                'country_code' => '204',
-                'iso_3166_2' => 'ISO 3166-2:BJ',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'BM' => [
-                'name' => 'Bermuda',
-                'alpha_2' => 'BM',
-                'alpha_3' => 'BMU',
-                'country_code' => '060',
-                'iso_3166_2' => 'ISO 3166-2:BM',
-                'region' => 'Americas',
-                'sub_region' => 'Northern America',
-                'intermediate_region' => '',
-                'region_code' => '019',
-                'sub_region_code' => '021',
-                'intermediate_region_code' => ''
-            ],
-            'BT' => [
-                'name' => 'Bhutan',
-                'alpha_2' => 'BT',
-                'alpha_3' => 'BTN',
-                'country_code' => '064',
-                'iso_3166_2' => 'ISO 3166-2:BT',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'BO' => [
-                'name' => 'Bolivia [Plurinational State of)',
-                'alpha_2' => 'BO',
-                'alpha_3' => 'BOL',
-                'country_code' => '068',
-                'iso_3166_2' => 'ISO 3166-2:BO',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005',
-            ],
-            'BQ' => [
-                'name' => 'Bonaire, Sint Eustatius and Saba',
-                'alpha_2' => 'BQ',
-                'alpha_3' => 'BES',
-                'country_code' => '535',
-                'iso_3166_2' => 'ISO 3166-2:BQ',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'BA' => [
-                'name' => 'Bosnia and Herzegovina',
-                'alpha_2' => 'BA',
-                'alpha_3' => 'BIH',
-                'country_code' => '070',
-                'iso_3166_2' => 'ISO 3166-2:BA',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'BW' => [
-                'name' => 'Botswana',
-                'alpha_2' => 'BW',
-                'alpha_3' => 'BWA',
-                'country_code' => '072',
-                'iso_3166_2' => 'ISO 3166-2:BW',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Southern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '018'
-            ],
-            'BV' => [
-                'name' => 'Bouvet Island',
-                'alpha_2' => 'BV',
-                'alpha_3' => 'BVT',
-                'country_code' => '074',
-                'iso_3166_2' => 'ISO 3166-2:BV',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'BR' => [
-                'name' => 'Brazil',
-                'alpha_2' => 'BR',
-                'alpha_3' => 'BRA',
-                'country_code' => '076',
-                'iso_3166_2' => 'ISO 3166-2:BR',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'IO' => [
-                'name' => 'British Indian Ocean Territory',
-                'alpha_2' => 'IO',
-                'alpha_3' => 'IOT',
-                'country_code' => '086',
-                'iso_3166_2' => 'ISO 3166-2:IO',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'BN' => [
-                'name' => 'Brunei Darussalam',
-                'alpha_2' => 'BN',
-                'alpha_3' => 'BRN',
-                'country_code' => '096',
-                'iso_3166_2' => 'ISO 3166-2:BN',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'BG' => [
-                'name' => 'Bulgaria',
-                'alpha_2' => 'BG',
-                'alpha_3' => 'BGR',
-                'country_code' => '100',
-                'iso_3166_2' => 'ISO 3166-2:BG',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'BF' => [
-                'name' => 'Burkina Faso',
-                'alpha_2' => 'BF',
-                'alpha_3' => 'BFA',
-                'country_code' => '854',
-                'iso_3166_2' => 'ISO 3166-2:BF',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'BI' => [
-                'name' => 'Burundi',
-                'alpha_2' => 'BI',
-                'alpha_3' => 'BDI',
-                'country_code' => '108',
-                'iso_3166_2' => 'ISO 3166-2:BI',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'CV' => [
-                'name' => 'Cabo Verde',
-                'alpha_2' => 'CV',
-                'alpha_3' => 'CPV',
-                'country_code' => '132',
-                'iso_3166_2' => 'ISO 3166-2:CV',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'KH' => [
-                'name' => 'Cambodia',
-                'alpha_2' => 'KH',
-                'alpha_3' => 'KHM',
-                'country_code' => '116',
-                'iso_3166_2' => 'ISO 3166-2:KH',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'CM' => [
-                'name' => 'Cameroon',
-                'alpha_2' => 'CM',
-                'alpha_3' => 'CMR',
-                'country_code' => '120',
-                'iso_3166_2' => 'ISO 3166-2:CM',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'CA' => [
-                'name' => 'Canada',
-                'alpha_2' => 'CA',
-                'alpha_3' => 'CAN',
-                'country_code' => '124',
-                'iso_3166_2' => 'ISO 3166-2:CA',
-                'region' => 'Americas',
-                'sub_region' => 'Northern America',
-                'intermediate_region' => '',
-                'region_code' => '019',
-                'sub_region_code' => '021',
-                'intermediate_region_code' => ''
-            ],
-            'KY' => [
-                'name' => 'Cayman Islands',
-                'alpha_2' => 'KY',
-                'alpha_3' => 'CYM',
-                'country_code' => '136',
-                'iso_3166_2' => 'ISO 3166-2:KY',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'CF' => [
-                'name' => 'Central African Republic',
-                'alpha_2' => 'CF',
-                'alpha_3' => 'CAF',
-                'country_code' => '140',
-                'iso_3166_2' => 'ISO 3166-2:CF',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'TD' => [
-                'name' => 'Chad',
-                'alpha_2' => 'TD',
-                'alpha_3' => 'TCD',
-                'country_code' => '148',
-                'iso_3166_2' => 'ISO 3166-2:TD',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'CL' => [
-                'name' => 'Chile',
-                'alpha_2' => 'CL',
-                'alpha_3' => 'CHL',
-                'country_code' => '152',
-                'iso_3166_2' => 'ISO 3166-2:CL',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'CN' => [
-                'name' => 'China',
-                'alpha_2' => 'CN',
-                'alpha_3' => 'CHN',
-                'country_code' => '156',
-                'iso_3166_2' => 'ISO 3166-2:CN',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'CX' => [
-                'name' => 'Christmas Island',
-                'alpha_2' => 'CX',
-                'alpha_3' => 'CXR',
-                'country_code' => '162',
-                'iso_3166_2' => 'ISO 3166-2:CX',
-                'region' => 'Oceania',
-                'sub_region' => 'Australia and New Zealand',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '053',
-                'intermediate_region_code' => ''
-            ],
-            'CC' => [
-                'name' => 'Cocos (Keeling) Islands',
-                'alpha_2' => 'CC',
-                'alpha_3' => 'CCK',
-                'country_code' => '166',
-                'iso_3166_2' => 'ISO 3166-2:CC',
-                'region' => 'Oceania',
-                'sub_region' => 'Australia and New Zealand',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '053',
-                'intermediate_region_code' => ''
-            ],
-            'CO' => [
-                'name' => 'Colombia',
-                'alpha_2' => 'CO',
-                'alpha_3' => 'COL',
-                'country_code' => '170',
-                'iso_3166_2' => 'ISO 3166-2:CO',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'KM' => [
-                'name' => 'Comoros',
-                'alpha_2' => 'KM',
-                'alpha_3' => 'COM',
-                'country_code' => '174',
-                'iso_3166_2' => 'ISO 3166-2:KM',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'CG' => [
-                'name' => 'Congo',
-                'alpha_2' => 'CG',
-                'alpha_3' => 'COG',
-                'country_code' => '178',
-                'iso_3166_2' => 'ISO 3166-2:CG',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'CD' => [
-                'name' => 'Congo, Democratic Republic of the',
-                'alpha_2' => 'CD',
-                'alpha_3' => 'COD',
-                'country_code' => '180',
-                'iso_3166_2' => 'ISO 3166-2:CD',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017',
-            ],
-            'CK' => [
-                'name' => 'Cook Islands',
-                'alpha_2' => 'CK',
-                'alpha_3' => 'COK',
-                'country_code' => '184',
-                'iso_3166_2' => 'ISO 3166-2:CK',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'CR' => [
-                'name' => 'Costa Rica',
-                'alpha_2' => 'CR',
-                'alpha_3' => 'CRI',
-                'country_code' => '188',
-                'iso_3166_2' => 'ISO 3166-2:CR',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'CI' => [
-                'name' => 'Côte d\'Ivoire',
-                'alpha_2' => 'CI',
-                'alpha_3' => 'CIV',
-                'country_code' => '384',
-                'iso_3166_2' => 'ISO 3166-2:CI',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'HR' => [
-                'name' => 'Croatia',
-                'alpha_2' => 'HR',
-                'alpha_3' => 'HRV',
-                'country_code' => '191',
-                'iso_3166_2' => 'ISO 3166-2:HR',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'CU' => [
-                'name' => 'Cuba',
-                'alpha_2' => 'CU',
-                'alpha_3' => 'CUB',
-                'country_code' => '192',
-                'iso_3166_2' => 'ISO 3166-2:CU',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'CW' => [
-                'name' => 'Curaçao',
-                'alpha_2' => 'CW',
-                'alpha_3' => 'CUW',
-                'country_code' => '531',
-                'iso_3166_2' => 'ISO 3166-2:CW',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'CY' => [
-                'name' => 'Cyprus',
-                'alpha_2' => 'CY',
-                'alpha_3' => 'CYP',
-                'country_code' => '196',
-                'iso_3166_2' => 'ISO 3166-2:CY',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'CZ' => [
-                'name' => 'Czechia',
-                'alpha_2' => 'CZ',
-                'alpha_3' => 'CZE',
-                'country_code' => '203',
-                'iso_3166_2' => 'ISO 3166-2:CZ',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'DK' => [
-                'name' => 'Denmark',
-                'alpha_2' => 'DK',
-                'alpha_3' => 'DNK',
-                'country_code' => '208',
-                'iso_3166_2' => 'ISO 3166-2:DK',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'DJ' => [
-                'name' => 'Djibouti',
-                'alpha_2' => 'DJ',
-                'alpha_3' => 'DJI',
-                'country_code' => '262',
-                'iso_3166_2' => 'ISO 3166-2:DJ',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'DM' => [
-                'name' => 'Dominica',
-                'alpha_2' => 'DM',
-                'alpha_3' => 'DMA',
-                'country_code' => '212',
-                'iso_3166_2' => 'ISO 3166-2:DM',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'DO' => [
-                'name' => 'Dominican Republic',
-                'alpha_2' => 'DO',
-                'alpha_3' => 'DOM',
-                'country_code' => '214',
-                'iso_3166_2' => 'ISO 3166-2:DO',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'EC' => [
-                'name' => 'Ecuador',
-                'alpha_2' => 'EC',
-                'alpha_3' => 'ECU',
-                'country_code' => '218',
-                'iso_3166_2' => 'ISO 3166-2:EC',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'EG' => [
-                'name' => 'Egypt',
-                'alpha_2' => 'EG',
-                'alpha_3' => 'EGY',
-                'country_code' => '818',
-                'iso_3166_2' => 'ISO 3166-2:EG',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'SV' => [
-                'name' => 'El Salvador',
-                'alpha_2' => 'SV',
-                'alpha_3' => 'SLV',
-                'country_code' => '222',
-                'iso_3166_2' => 'ISO 3166-2:SV',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'GQ' => [
-                'name' => 'Equatorial Guinea',
-                'alpha_2' => 'GQ',
-                'alpha_3' => 'GNQ',
-                'country_code' => '226',
-                'iso_3166_2' => 'ISO 3166-2:GQ',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'ER' => [
-                'name' => 'Eritrea',
-                'alpha_2' => 'ER',
-                'alpha_3' => 'ERI',
-                'country_code' => '232',
-                'iso_3166_2' => 'ISO 3166-2:ER',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'EE' => [
-                'name' => 'Estonia',
-                'alpha_2' => 'EE',
-                'alpha_3' => 'EST',
-                'country_code' => '233',
-                'iso_3166_2' => 'ISO 3166-2:EE',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'SZ' => [
-                'name' => 'Eswatini',
-                'alpha_2' => 'SZ',
-                'alpha_3' => 'SWZ',
-                'country_code' => '748',
-                'iso_3166_2' => 'ISO 3166-2:SZ',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Southern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '018'
-            ],
-            'ET' => [
-                'name' => 'Ethiopia',
-                'alpha_2' => 'ET',
-                'alpha_3' => 'ETH',
-                'country_code' => '231',
-                'iso_3166_2' => 'ISO 3166-2:ET',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'FK' => [
-                'name' => 'Falkland Islands (Malvinas)',
-                'alpha_2' => 'FK',
-                'alpha_3' => 'FLK',
-                'country_code' => '238',
-                'iso_3166_2' => 'ISO 3166-2:FK',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'FO' => [
-                'name' => 'Faroe Islands',
-                'alpha_2' => 'FO',
-                'alpha_3' => 'FRO',
-                'country_code' => '234',
-                'iso_3166_2' => 'ISO 3166-2:FO',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'FJ' => [
-                'name' => 'Fiji',
-                'alpha_2' => 'FJ',
-                'alpha_3' => 'FJI',
-                'country_code' => '242',
-                'iso_3166_2' => 'ISO 3166-2:FJ',
-                'region' => 'Oceania',
-                'sub_region' => 'Melanesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '054',
-                'intermediate_region_code' => ''
-            ],
-            'FI' => [
-                'name' => 'Finland',
-                'alpha_2' => 'FI',
-                'alpha_3' => 'FIN',
-                'country_code' => '246',
-                'iso_3166_2' => 'ISO 3166-2:FI',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'FR' => [
-                'name' => 'France',
-                'alpha_2' => 'FR',
-                'alpha_3' => 'FRA',
-                'country_code' => '250',
-                'iso_3166_2' => 'ISO 3166-2:FR',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'GF' => [
-                'name' => 'French Guiana',
-                'alpha_2' => 'GF',
-                'alpha_3' => 'GUF',
-                'country_code' => '254',
-                'iso_3166_2' => 'ISO 3166-2:GF',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'PF' => [
-                'name' => 'French Polynesia',
-                'alpha_2' => 'PF',
-                'alpha_3' => 'PYF',
-                'country_code' => '258',
-                'iso_3166_2' => 'ISO 3166-2:PF',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'TF' => [
-                'name' => 'French Southern Territories',
-                'alpha_2' => 'TF',
-                'alpha_3' => 'ATF',
-                'country_code' => '260',
-                'iso_3166_2' => 'ISO 3166-2:TF',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'GA' => [
-                'name' => 'Gabon',
-                'alpha_2' => 'GA',
-                'alpha_3' => 'GAB',
-                'country_code' => '266',
-                'iso_3166_2' => 'ISO 3166-2:GA',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'GM' => [
-                'name' => 'Gambia',
-                'alpha_2' => 'GM',
-                'alpha_3' => 'GMB',
-                'country_code' => '270',
-                'iso_3166_2' => 'ISO 3166-2:GM',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'GE' => [
-                'name' => 'Georgia',
-                'alpha_2' => 'GE',
-                'alpha_3' => 'GEO',
-                'country_code' => '268',
-                'iso_3166_2' => 'ISO 3166-2:GE',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'DE' => [
-                'name' => 'Germany',
-                'alpha_2' => 'DE',
-                'alpha_3' => 'DEU',
-                'country_code' => '276',
-                'iso_3166_2' => 'ISO 3166-2:DE',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'GH' => [
-                'name' => 'Ghana',
-                'alpha_2' => 'GH',
-                'alpha_3' => 'GHA',
-                'country_code' => '288',
-                'iso_3166_2' => 'ISO 3166-2:GH',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'GI' => [
-                'name' => 'Gibraltar',
-                'alpha_2' => 'GI',
-                'alpha_3' => 'GIB',
-                'country_code' => '292',
-                'iso_3166_2' => 'ISO 3166-2:GI',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'GR' => [
-                'name' => 'Greece',
-                'alpha_2' => 'GR',
-                'alpha_3' => 'GRC',
-                'country_code' => '300',
-                'iso_3166_2' => 'ISO 3166-2:GR',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'GL' => [
-                'name' => 'Greenland',
-                'alpha_2' => 'GL',
-                'alpha_3' => 'GRL',
-                'country_code' => '304',
-                'iso_3166_2' => 'ISO 3166-2:GL',
-                'region' => 'Americas',
-                'sub_region' => 'Northern America',
-                'intermediate_region' => '',
-                'region_code' => '019',
-                'sub_region_code' => '021',
-                'intermediate_region_code' => ''
-            ],
-            'GD' => [
-                'name' => 'Grenada',
-                'alpha_2' => 'GD',
-                'alpha_3' => 'GRD',
-                'country_code' => '308',
-                'iso_3166_2' => 'ISO 3166-2:GD',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'GP' => [
-                'name' => 'Guadeloupe',
-                'alpha_2' => 'GP',
-                'alpha_3' => 'GLP',
-                'country_code' => '312',
-                'iso_3166_2' => 'ISO 3166-2:GP',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'GU' => [
-                'name' => 'Guam',
-                'alpha_2' => 'GU',
-                'alpha_3' => 'GUM',
-                'country_code' => '316',
-                'iso_3166_2' => 'ISO 3166-2:GU',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'GT' => [
-                'name' => 'Guatemala',
-                'alpha_2' => 'GT',
-                'alpha_3' => 'GTM',
-                'country_code' => '320',
-                'iso_3166_2' => 'ISO 3166-2:GT',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'GG' => [
-                'name' => 'Guernsey',
-                'alpha_2' => 'GG',
-                'alpha_3' => 'GGY',
-                'country_code' => '831',
-                'iso_3166_2' => 'ISO 3166-2:GG',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => 'Channel Islands',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => '830'
-            ],
-            'GN' => [
-                'name' => 'Guinea',
-                'alpha_2' => 'GN',
-                'alpha_3' => 'GIN',
-                'country_code' => '324',
-                'iso_3166_2' => 'ISO 3166-2:GN',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'GW' => [
-                'name' => 'Guinea-Bissau',
-                'alpha_2' => 'GW',
-                'alpha_3' => 'GNB',
-                'country_code' => '624',
-                'iso_3166_2' => 'ISO 3166-2:GW',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'GY' => [
-                'name' => 'Guyana',
-                'alpha_2' => 'GY',
-                'alpha_3' => 'GUY',
-                'country_code' => '328',
-                'iso_3166_2' => 'ISO 3166-2:GY',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'HT' => [
-                'name' => 'Haiti',
-                'alpha_2' => 'HT',
-                'alpha_3' => 'HTI',
-                'country_code' => '332',
-                'iso_3166_2' => 'ISO 3166-2:HT',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'HM' => [
-                'name' => 'Heard Island and McDonald Islands',
-                'alpha_2' => 'HM',
-                'alpha_3' => 'HMD',
-                'country_code' => '334',
-                'iso_3166_2' => 'ISO 3166-2:HM',
-                'region' => 'Oceania',
-                'sub_region' => 'Australia and New Zealand',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '053',
-                'intermediate_region_code' => ''
-            ],
-            'VA' => [
-                'name' => 'Holy See',
-                'alpha_2' => 'VA',
-                'alpha_3' => 'VAT',
-                'country_code' => '336',
-                'iso_3166_2' => 'ISO 3166-2:VA',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'HN' => [
-                'name' => 'Honduras',
-                'alpha_2' => 'HN',
-                'alpha_3' => 'HND',
-                'country_code' => '340',
-                'iso_3166_2' => 'ISO 3166-2:HN',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'HK' => [
-                'name' => 'Hong Kong',
-                'alpha_2' => 'HK',
-                'alpha_3' => 'HKG',
-                'country_code' => '344',
-                'iso_3166_2' => 'ISO 3166-2:HK',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'HU' => [
-                'name' => 'Hungary',
-                'alpha_2' => 'HU',
-                'alpha_3' => 'HUN',
-                'country_code' => '348',
-                'iso_3166_2' => 'ISO 3166-2:HU',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'IS' => [
-                'name' => 'Iceland',
-                'alpha_2' => 'IS',
-                'alpha_3' => 'ISL',
-                'country_code' => '352',
-                'iso_3166_2' => 'ISO 3166-2:IS',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'IN' => [
-                'name' => 'India',
-                'alpha_2' => 'IN',
-                'alpha_3' => 'IND',
-                'country_code' => '356',
-                'iso_3166_2' => 'ISO 3166-2:IN',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'ID' => [
-                'name' => 'Indonesia',
-                'alpha_2' => 'ID',
-                'alpha_3' => 'IDN',
-                'country_code' => '360',
-                'iso_3166_2' => 'ISO 3166-2:ID',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'IR' => [
-                'name' => 'Iran (Islamic Republic of)',
-                'alpha_2' => 'IR',
-                'alpha_3' => 'IRN',
-                'country_code' => '364',
-                'iso_3166_2' => 'ISO 3166-2:IR',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'IQ' => [
-                'name' => 'Iraq',
-                'alpha_2' => 'IQ',
-                'alpha_3' => 'IRQ',
-                'country_code' => '368',
-                'iso_3166_2' => 'ISO 3166-2:IQ',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'IE' => [
-                'name' => 'Ireland',
-                'alpha_2' => 'IE',
-                'alpha_3' => 'IRL',
-                'country_code' => '372',
-                'iso_3166_2' => 'ISO 3166-2:IE',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'IM' => [
-                'name' => 'Isle of Man',
-                'alpha_2' => 'IM',
-                'alpha_3' => 'IMN',
-                'country_code' => '833',
-                'iso_3166_2' => 'ISO 3166-2:IM',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'IL' => [
-                'name' => 'Israel',
-                'alpha_2' => 'IL',
-                'alpha_3' => 'ISR',
-                'country_code' => '376',
-                'iso_3166_2' => 'ISO 3166-2:IL',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'IT' => [
-                'name' => 'Italy',
-                'alpha_2' => 'IT',
-                'alpha_3' => 'ITA',
-                'country_code' => '380',
-                'iso_3166_2' => 'ISO 3166-2:IT',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'JM' => [
-                'name' => 'Jamaica',
-                'alpha_2' => 'JM',
-                'alpha_3' => 'JAM',
-                'country_code' => '388',
-                'iso_3166_2' => 'ISO 3166-2:JM',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'JP' => [
-                'name' => 'Japan',
-                'alpha_2' => 'JP',
-                'alpha_3' => 'JPN',
-                'country_code' => '392',
-                'iso_3166_2' => 'ISO 3166-2:JP',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'JE' => [
-                'name' => 'Jersey',
-                'alpha_2' => 'JE',
-                'alpha_3' => 'JEY',
-                'country_code' => '832',
-                'iso_3166_2' => 'ISO 3166-2:JE',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => 'Channel Islands',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => '830'
-            ],
-            'JO' => [
-                'name' => 'Jordan',
-                'alpha_2' => 'JO',
-                'alpha_3' => 'JOR',
-                'country_code' => '400',
-                'iso_3166_2' => 'ISO 3166-2:JO',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'KZ' => [
-                'name' => 'Kazakhstan',
-                'alpha_2' => 'KZ',
-                'alpha_3' => 'KAZ',
-                'country_code' => '398',
-                'iso_3166_2' => 'ISO 3166-2:KZ',
-                'region' => 'Asia',
-                'sub_region' => 'Central Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '143',
-                'intermediate_region_code' => ''
-            ],
-            'KE' => [
-                'name' => 'Kenya',
-                'alpha_2' => 'KE',
-                'alpha_3' => 'KEN',
-                'country_code' => '404',
-                'iso_3166_2' => 'ISO 3166-2:KE',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'KI' => [
-                'name' => 'Kiribati',
-                'alpha_2' => 'KI',
-                'alpha_3' => 'KIR',
-                'country_code' => '296',
-                'iso_3166_2' => 'ISO 3166-2:KI',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'KP' => [
-                'name' => 'Korea (Democratic People\'s Republic of)',
-                'alpha_2' => 'KP',
-                'alpha_3' => 'PRK',
-                'country_code' => '408',
-                'iso_3166_2' => 'ISO 3166-2:KP',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'KR' => [
-                'name' => 'Korea, Republic of',
-                'alpha_2' => 'KR',
-                'alpha_3' => 'KOR',
-                'country_code' => '410',
-                'iso_3166_2' => 'ISO 3166-2:KR',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'KW' => [
-                'name' => 'Kuwait',
-                'alpha_2' => 'KW',
-                'alpha_3' => 'KWT',
-                'country_code' => '414',
-                'iso_3166_2' => 'ISO 3166-2:KW',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'KG' => [
-                'name' => 'Kyrgyzstan',
-                'alpha_2' => 'KG',
-                'alpha_3' => 'KGZ',
-                'country_code' => '417',
-                'iso_3166_2' => 'ISO 3166-2:KG',
-                'region' => 'Asia',
-                'sub_region' => 'Central Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '143',
-                'intermediate_region_code' => ''
-            ],
-            'LA' => [
-                'name' => 'Lao People\'s Democratic Republic',
-                'alpha_2' => 'LA',
-                'alpha_3' => 'LAO',
-                'country_code' => '418',
-                'iso_3166_2' => 'ISO 3166-2:LA',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'LV' => [
-                'name' => 'Latvia',
-                'alpha_2' => 'LV',
-                'alpha_3' => 'LVA',
-                'country_code' => '428',
-                'iso_3166_2' => 'ISO 3166-2:LV',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'LB' => [
-                'name' => 'Lebanon',
-                'alpha_2' => 'LB',
-                'alpha_3' => 'LBN',
-                'country_code' => '422',
-                'iso_3166_2' => 'ISO 3166-2:LB',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'LS' => [
-                'name' => 'Lesotho',
-                'alpha_2' => 'LS',
-                'alpha_3' => 'LSO',
-                'country_code' => '426',
-                'iso_3166_2' => 'ISO 3166-2:LS',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Southern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '018'
-            ],
-            'LR' => [
-                'name' => 'Liberia',
-                'alpha_2' => 'LR',
-                'alpha_3' => 'LBR',
-                'country_code' => '430',
-                'iso_3166_2' => 'ISO 3166-2:LR',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'LY' => [
-                'name' => 'Libya',
-                'alpha_2' => 'LY',
-                'alpha_3' => 'LBY',
-                'country_code' => '434',
-                'iso_3166_2' => 'ISO 3166-2:LY',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'LI' => [
-                'name' => 'Liechtenstein',
-                'alpha_2' => 'LI',
-                'alpha_3' => 'LIE',
-                'country_code' => '438',
-                'iso_3166_2' => 'ISO 3166-2:LI',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'LT' => [
-                'name' => 'Lithuania',
-                'alpha_2' => 'LT',
-                'alpha_3' => 'LTU',
-                'country_code' => '440',
-                'iso_3166_2' => 'ISO 3166-2:LT',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'LU' => [
-                'name' => 'Luxembourg',
-                'alpha_2' => 'LU',
-                'alpha_3' => 'LUX',
-                'country_code' => '442',
-                'iso_3166_2' => 'ISO 3166-2:LU',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'MO' => [
-                'name' => 'Macao',
-                'alpha_2' => 'MO',
-                'alpha_3' => 'MAC',
-                'country_code' => '446',
-                'iso_3166_2' => 'ISO 3166-2:MO',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'MG' => [
-                'name' => 'Madagascar',
-                'alpha_2' => 'MG',
-                'alpha_3' => 'MDG',
-                'country_code' => '450',
-                'iso_3166_2' => 'ISO 3166-2:MG',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'MW' => [
-                'name' => 'Malawi',
-                'alpha_2' => 'MW',
-                'alpha_3' => 'MWI',
-                'country_code' => '454',
-                'iso_3166_2' => 'ISO 3166-2:MW',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'MY' => [
-                'name' => 'Malaysia',
-                'alpha_2' => 'MY',
-                'alpha_3' => 'MYS',
-                'country_code' => '458',
-                'iso_3166_2' => 'ISO 3166-2:MY',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'MV' => [
-                'name' => 'Maldives',
-                'alpha_2' => 'MV',
-                'alpha_3' => 'MDV',
-                'country_code' => '462',
-                'iso_3166_2' => 'ISO 3166-2:MV',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'ML' => [
-                'name' => 'Mali',
-                'alpha_2' => 'ML',
-                'alpha_3' => 'MLI',
-                'country_code' => '466',
-                'iso_3166_2' => 'ISO 3166-2:ML',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'MT' => [
-                'name' => 'Malta',
-                'alpha_2' => 'MT',
-                'alpha_3' => 'MLT',
-                'country_code' => '470',
-                'iso_3166_2' => 'ISO 3166-2:MT',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'MH' => [
-                'name' => 'Marshall Islands',
-                'alpha_2' => 'MH',
-                'alpha_3' => 'MHL',
-                'country_code' => '584',
-                'iso_3166_2' => 'ISO 3166-2:MH',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'MQ' => [
-                'name' => 'Martinique',
-                'alpha_2' => 'MQ',
-                'alpha_3' => 'MTQ',
-                'country_code' => '474',
-                'iso_3166_2' => 'ISO 3166-2:MQ',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'MR' => [
-                'name' => 'Mauritania',
-                'alpha_2' => 'MR',
-                'alpha_3' => 'MRT',
-                'country_code' => '478',
-                'iso_3166_2' => 'ISO 3166-2:MR',
-                'region' => 'Africa',
-                'sub_region' => ' Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'MU' => [
-                'name' => 'Mauritius',
-                'alpha_2' => 'MU',
-                'alpha_3' => 'MUS',
-                'country_code' => '480',
-                'iso_3166_2' => 'ISO 3166-2:MU',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'YT' => [
-                'name' => 'Mayotte',
-                'alpha_2' => 'YT',
-                'alpha_3' => 'MYT',
-                'country_code' => '175',
-                'iso_3166_2' => 'ISO 3166-2:YT',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'MX' => [
-                'name' => 'Mexico',
-                'alpha_2' => 'MX',
-                'alpha_3' => 'MEX',
-                'country_code' => '484',
-                'iso_3166_2' => 'ISO 3166-2:MX',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'FM' => [
-                'name' => 'Micronesia (Federated States of)',
-                'alpha_2' => 'FM',
-                'alpha_3' => 'FSM',
-                'country_code' => '583',
-                'iso_3166_2' => 'ISO 3166-2:FM',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'MD' => [
-                'name' => 'Moldova, Republic of',
-                'alpha_2' => 'MD',
-                'alpha_3' => 'MDA',
-                'country_code' => '498',
-                'iso_3166_2' => 'ISO 3166-2:MD',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'MC' => [
-                'name' => 'Monaco',
-                'alpha_2' => 'MC',
-                'alpha_3' => 'MCO',
-                'country_code' => '492',
-                'iso_3166_2' => 'ISO 3166-2:MC',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'MN' => [
-                'name' => 'Mongolia',
-                'alpha_2' => 'MN',
-                'alpha_3' => 'MNG',
-                'country_code' => '496',
-                'iso_3166_2' => 'ISO 3166-2:MN',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'ME' => [
-                'name' => 'Montenegro',
-                'alpha_2' => 'ME',
-                'alpha_3' => 'MNE',
-                'country_code' => '499',
-                'iso_3166_2' => 'ISO 3166-2:ME',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'MS' => [
-                'name' => 'Montserrat',
-                'alpha_2' => 'MS',
-                'alpha_3' => 'MSR',
-                'country_code' => '500',
-                'iso_3166_2' => 'ISO 3166-2:MS',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'MA' => [
-                'name' => 'Morocco',
-                'alpha_2' => 'MA',
-                'alpha_3' => 'MAR',
-                'country_code' => '504',
-                'iso_3166_2' => 'ISO 3166-2:MA',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'MZ' => [
-                'name' => 'Mozambique',
-                'alpha_2' => 'MZ',
-                'alpha_3' => 'MOZ',
-                'country_code' => '508',
-                'iso_3166_2' => 'ISO 3166-2:MZ',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'MM' => [
-                'name' => 'Myanmar',
-                'alpha_2' => 'MM',
-                'alpha_3' => 'MMR',
-                'country_code' => '104',
-                'iso_3166_2' => 'ISO 3166-2:MM',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'NA' => [
-                'name' => 'Namibia',
-                'alpha_2' => 'NA',
-                'alpha_3' => 'NAM',
-                'country_code' => '516',
-                'iso_3166_2' => 'ISO 3166-2:NA',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Southern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '018'
-            ],
-            'NR' => [
-                'name' => 'Nauru',
-                'alpha_2' => 'NR',
-                'alpha_3' => 'NRU',
-                'country_code' => '520',
-                'iso_3166_2' => 'ISO 3166-2:NR',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'NP' => [
-                'name' => 'Nepal',
-                'alpha_2' => 'NP',
-                'alpha_3' => 'NPL',
-                'country_code' => '524',
-                'iso_3166_2' => 'ISO 3166-2:NP',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'NL' => [
-                'name' => 'Netherlands',
-                'alpha_2' => 'NL',
-                'alpha_3' => 'NLD',
-                'country_code' => '528',
-                'iso_3166_2' => 'ISO 3166-2:NL',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'NC' => [
-                'name' => 'New Caledonia',
-                'alpha_2' => 'NC',
-                'alpha_3' => 'NCL',
-                'country_code' => '540',
-                'iso_3166_2' => 'ISO 3166-2:NC',
-                'region' => 'Oceania',
-                'sub_region' => 'Melanesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '054',
-                'intermediate_region_code' => ''
-            ],
-            'NZ' => [
-                'name' => 'New Zealand',
-                'alpha_2' => 'NZ',
-                'alpha_3' => 'NZL',
-                'country_code' => '554',
-                'iso_3166_2' => 'ISO 3166-2:NZ',
-                'region' => 'Oceania',
-                'sub_region' => 'Australia and New Zealand',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '053',
-                'intermediate_region_code' => ''
-            ],
-            'NI' => [
-                'name' => 'Nicaragua',
-                'alpha_2' => 'NI',
-                'alpha_3' => 'NIC',
-                'country_code' => '558',
-                'iso_3166_2' => 'ISO 3166-2:NI',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'NE' => [
-                'name' => 'Niger',
-                'alpha_2' => 'NE',
-                'alpha_3' => 'NER',
-                'country_code' => '562',
-                'iso_3166_2' => 'ISO 3166-2:NE',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'NG' => [
-                'name' => 'Nigeria',
-                'alpha_2' => 'NG',
-                'alpha_3' => 'NGA',
-                'country_code' => '566',
-                'iso_3166_2' => 'ISO 3166-2:NG',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'NU' => [
-                'name' => 'Niue',
-                'alpha_2' => 'NU',
-                'alpha_3' => 'NIU',
-                'country_code' => '570',
-                'iso_3166_2' => 'ISO 3166-2:NU',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'NF' => [
-                'name' => 'Norfolk Island',
-                'alpha_2' => 'NF',
-                'alpha_3' => 'NFK',
-                'country_code' => '574',
-                'iso_3166_2' => 'ISO 3166-2:NF',
-                'region' => 'Oceania',
-                'sub_region' => 'Australia and New Zealand',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '053',
-                'intermediate_region_code' => ''
-            ],
-            'MK' => [
-                'name' => 'North Macedonia',
-                'alpha_2' => 'MK',
-                'alpha_3' => 'MKD',
-                'country_code' => '807',
-                'iso_3166_2' => 'ISO 3166-2:MK',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'MP' => [
-                'name' => 'Northern Mariana Islands',
-                'alpha_2' => 'MP',
-                'alpha_3' => 'MNP',
-                'country_code' => '580',
-                'iso_3166_2' => 'ISO 3166-2:MP',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'NO' => [
-                'name' => 'Norway',
-                'alpha_2' => 'NO',
-                'alpha_3' => 'NOR',
-                'country_code' => '578',
-                'iso_3166_2' => 'ISO 3166-2:NO',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'OM' => [
-                'name' => 'Oman',
-                'alpha_2' => 'OM',
-                'alpha_3' => 'OMN',
-                'country_code' => '512',
-                'iso_3166_2' => 'ISO 3166-2:OM',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'PK' => [
-                'name' => 'Pakistan',
-                'alpha_2' => 'PK',
-                'alpha_3' => 'PAK',
-                'country_code' => '586',
-                'iso_3166_2' => 'ISO 3166-2:PK',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => ''
-            ],
-            'PW' => [
-                'name' => 'Palau',
-                'alpha_2' => 'PW',
-                'alpha_3' => 'PLW',
-                'country_code' => '585',
-                'iso_3166_2' => 'ISO 3166-2:PW',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'PS' => [
-                'name' => 'Palestine, State of',
-                'alpha_2' => 'PS',
-                'alpha_3' => 'PSE',
-                'country_code' => '275',
-                'iso_3166_2' => 'ISO 3166-2:PS',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'PA' => [
-                'name' => 'Panama',
-                'alpha_2' => 'PA',
-                'alpha_3' => 'PAN',
-                'country_code' => '591',
-                'iso_3166_2' => 'ISO 3166-2:PA',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Central America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '013'
-            ],
-            'PG' => [
-                'name' => 'Papua New Guinea',
-                'alpha_2' => 'PG',
-                'alpha_3' => 'PNG',
-                'country_code' => '598',
-                'iso_3166_2' => 'ISO 3166-2:PG',
-                'region' => 'Oceania',
-                'sub_region' => 'Melanesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '054',
-                'intermediate_region_code' => ''
-            ],
-            'PY' => [
-                'name' => 'Paraguay',
-                'alpha_2' => 'PY',
-                'alpha_3' => 'PRY',
-                'country_code' => '600',
-                'iso_3166_2' => 'ISO 3166-2:PY',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'PE' => [
-                'name' => 'Peru',
-                'alpha_2' => 'PE',
-                'alpha_3' => 'PER',
-                'country_code' => '604',
-                'iso_3166_2' => 'ISO 3166-2:PE',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'PH' => [
-                'name' => 'Philippines',
-                'alpha_2' => 'PH',
-                'alpha_3' => 'PHL',
-                'country_code' => '608',
-                'iso_3166_2' => 'ISO 3166-2:PH',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'PN' => [
-                'name' => 'Pitcairn',
-                'alpha_2' => 'PN',
-                'alpha_3' => 'PCN',
-                'country_code' => '612',
-                'iso_3166_2' => 'ISO 3166-2:PN',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'PL' => [
-                'name' => 'Poland',
-                'alpha_2' => 'PL',
-                'alpha_3' => 'POL',
-                'country_code' => '616',
-                'iso_3166_2' => 'ISO 3166-2:PL',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'PT' => [
-                'name' => 'Portugal',
-                'alpha_2' => 'PT',
-                'alpha_3' => 'PRT',
-                'country_code' => '620',
-                'iso_3166_2' => 'ISO 3166-2:PT',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'PR' => [
-                'name' => 'Puerto Rico',
-                'alpha_2' => 'PR',
-                'alpha_3' => 'PRI',
-                'country_code' => '630',
-                'iso_3166_2' => 'ISO 3166-2:PR',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'QA' => [
-                'name' => 'Qatar',
-                'alpha_2' => 'QA',
-                'alpha_3' => 'QAT',
-                'country_code' => '634',
-                'iso_3166_2' => 'ISO 3166-2:QA',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'RE' => [
-                'name' => 'Réunion',
-                'alpha_2' => 'RE',
-                'alpha_3' => 'REU',
-                'country_code' => '638',
-                'iso_3166_2' => 'ISO 3166-2:RE',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'RO' => [
-                'name' => 'Romania',
-                'alpha_2' => 'RO',
-                'alpha_3' => 'ROU',
-                'country_code' => '642',
-                'iso_3166_2' => 'ISO 3166-2:RO',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'RU' => [
-                'name' => 'Russian Federation',
-                'alpha_2' => 'RU',
-                'alpha_3' => 'RUS',
-                'country_code' => '643',
-                'iso_3166_2' => 'ISO 3166-2:RU',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'RW' => [
-                'name' => 'Rwanda',
-                'alpha_2' => 'RW',
-                'alpha_3' => 'RWA',
-                'country_code' => '646',
-                'iso_3166_2' => 'ISO 3166-2:RW',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'BL' => [
-                'name' => 'Saint Barthélemy',
-                'alpha_2' => 'BL',
-                'alpha_3' => 'BLM',
-                'country_code' => '652',
-                'iso_3166_2' => 'ISO 3166-2:BL',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'SH' => [
-                'name' => 'Saint Helena, Ascension and Tristan da Cunha',
-                'alpha_2' => 'SH',
-                'alpha_3' => 'SHN',
-                'country_code' => '654',
-                'iso_3166_2' => 'ISO 3166-2:SH',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'KN' => [
-                'name' => 'Saint Kitts and Nevis',
-                'alpha_2' => 'KN',
-                'alpha_3' => 'KNA',
-                'country_code' => '659',
-                'iso_3166_2' => 'ISO 3166-2:KN',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'LC' => [
-                'name' => 'Saint Lucia',
-                'alpha_2' => 'LC',
-                'alpha_3' => 'LCA',
-                'country_code' => '662',
-                'iso_3166_2' => 'ISO 3166-2:LC',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'MF' => [
-                'name' => 'Saint Martin (French part)',
-                'alpha_2' => 'MF',
-                'alpha_3' => 'MAF',
-                'country_code' => '663',
-                'iso_3166_2' => 'ISO 3166-2:MF',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'PM' => [
-                'name' => 'Saint Pierre and Miquelon',
-                'alpha_2' => 'PM',
-                'alpha_3' => 'SPM',
-                'country_code' => '666',
-                'iso_3166_2' => 'ISO 3166-2:PM',
-                'region' => 'Americas',
-                'sub_region' => 'Northern America',
-                'intermediate_region' => '',
-                'region_code' => '019',
-                'sub_region_code' => '021',
-                'intermediate_region_code' => ''
-            ],
-            'VC' => [
-                'name' => 'Saint Vincent and the Grenadines',
-                'alpha_2' => 'VC',
-                'alpha_3' => 'VCT',
-                'country_code' => '670',
-                'iso_3166_2' => 'ISO 3166-2:VC',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'WS' => [
-                'name' => 'Samoa',
-                'alpha_2' => 'WS',
-                'alpha_3' => 'WSM',
-                'country_code' => '882',
-                'iso_3166_2' => 'ISO 3166-2:WS',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'SM' => [
-                'name' => 'San Marino',
-                'alpha_2' => 'SM',
-                'alpha_3' => 'SMR',
-                'country_code' => '674',
-                'iso_3166_2' => 'ISO 3166-2:SM',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'ST' => [
-                'name' => 'Sao Tome and Principe',
-                'alpha_2' => 'ST',
-                'alpha_3' => 'STP',
-                'country_code' => '678',
-                'iso_3166_2' => 'ISO 3166-2:ST',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Middle Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '017'
-            ],
-            'SA' => [
-                'name' => 'Saudi Arabia',
-                'alpha_2' => 'SA',
-                'alpha_3' => 'SAU',
-                'country_code' => '682',
-                'iso_3166_2' => 'ISO 3166-2:SA',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'SN' => [
-                'name' => 'Senegal',
-                'alpha_2' => 'SN',
-                'alpha_3' => 'SEN',
-                'country_code' => '686',
-                'iso_3166_2' => 'ISO 3166-2:SN',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'RS' => [
-                'name' => 'Serbia',
-                'alpha_2' => 'RS',
-                'alpha_3' => 'SRB',
-                'country_code' => '688',
-                'iso_3166_2' => 'ISO 3166-2:RS',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'SC' => [
-                'name' => 'Seychelles',
-                'alpha_2' => 'SC',
-                'alpha_3' => 'SYC',
-                'country_code' => '690',
-                'iso_3166_2' => 'ISO 3166-2:SC',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'SL' => [
-                'name' => 'Sierra Leone',
-                'alpha_2' => 'SL',
-                'alpha_3' => 'SLE',
-                'country_code' => '694',
-                'iso_3166_2' => 'ISO 3166-2:SL',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'SG' => [
-                'name' => 'Singapore',
-                'alpha_2' => 'SG',
-                'alpha_3' => 'SGP',
-                'country_code' => '702',
-                'iso_3166_2' => 'ISO 3166-2:SG',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'SX' => [
-                'name' => 'Sint Maarten (Dutch part)',
-                'alpha_2' => 'SX',
-                'alpha_3' => 'SXM',
-                'country_code' => '534',
-                'iso_3166_2' => 'ISO 3166-2:SX',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'SK' => [
-                'name' => 'Slovakia',
-                'alpha_2' => 'SK',
-                'alpha_3' => 'SVK',
-                'country_code' => '703',
-                'iso_3166_2' => 'ISO 3166-2:SK',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'SI' => [
-                'name' => 'Slovenia',
-                'alpha_2' => 'SI',
-                'alpha_3' => 'SVN',
-                'country_code' => '705',
-                'iso_3166_2' => 'ISO 3166-2:SI',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'SB' => [
-                'name' => 'Solomon Islands',
-                'alpha_2' => 'SB',
-                'alpha_3' => 'SLB',
-                'country_code' => '090',
-                'iso_3166_2' => 'ISO 3166-2:SB',
-                'region' => 'Oceania',
-                'sub_region' => 'Melanesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '054',
-                'intermediate_region_code' => ''
-            ],
-            'SO' => [
-                'name' => 'Somalia',
-                'alpha_2' => 'SO',
-                'alpha_3' => 'SOM',
-                'country_code' => '706',
-                'iso_3166_2' => 'ISO 3166-2:SO',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'ZA' => [
-                'name' => 'South Africa',
-                'alpha_2' => 'ZA',
-                'alpha_3' => 'ZAF',
-                'country_code' => '710',
-                'iso_3166_2' => 'ISO 3166-2:ZA',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Southern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '018'
-            ],
-            'GS' => [
-                'name' => 'South Georgia and the South Sandwich Islands',
-                'alpha_2' => 'GS',
-                'alpha_3' => 'SGS',
-                'country_code' => '239',
-                'iso_3166_2' => 'ISO 3166-2:GS',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'SS' => [
-                'name' => 'South Sudan',
-                'alpha_2' => 'SS',
-                'alpha_3' => 'SSD',
-                'country_code' => '728',
-                'iso_3166_2' => 'ISO 3166-2:SS',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'ES' => [
-                'name' => 'Spain',
-                'alpha_2' => 'ES',
-                'alpha_3' => 'ESP',
-                'country_code' => '724',
-                'iso_3166_2' => 'ISO 3166-2:ES',
-                'region' => 'Europe',
-                'sub_region' => 'Southern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '039',
-                'intermediate_region_code' => ''
-            ],
-            'LK' => [
-                'name' => 'Sri Lanka',
-                'alpha_2' => 'LK',
-                'alpha_3' => 'LKA',
-                'country_code' => '144',
-                'iso_3166_2' => 'ISO 3166-2:LK',
-                'region' => 'Asia',
-                'sub_region' => 'Southern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '034',
-                'intermediate_region_code' => '',
-            ],
-            'SD' => [
-                'name' => 'Sudan',
-                'alpha_2' => 'SD',
-                'alpha_3' => 'SDN',
-                'country_code' => '729',
-                'iso_3166_2' => 'ISO 3166-2:SD',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'SR' => [
-                'name' => 'Suriname',
-                'alpha_2' => 'SR',
-                'alpha_3' => 'SUR',
-                'country_code' => '740',
-                'iso_3166_2' => 'ISO 3166-2:SR',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'SJ' => [
-                'name' => 'Svalbard and Jan Mayen',
-                'alpha_2' => 'SJ',
-                'alpha_3' => 'SJM',
-                'country_code' => '744',
-                'iso_3166_2' => 'ISO 3166-2:SJ',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'SE' => [
-                'name' => 'Sweden',
-                'alpha_2' => 'SE',
-                'alpha_3' => 'SWE',
-                'country_code' => '752',
-                'iso_3166_2' => 'ISO 3166-2:SE',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'CH' => [
-                'name' => 'Switzerland',
-                'alpha_2' => 'CH',
-                'alpha_3' => 'CHE',
-                'country_code' => '756',
-                'iso_3166_2' => 'ISO 3166-2:CH',
-                'region' => 'Europe',
-                'sub_region' => 'Western Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '155',
-                'intermediate_region_code' => ''
-            ],
-            'SY' => [
-                'name' => 'Syrian Arab Republic',
-                'alpha_2' => 'SY',
-                'alpha_3' => 'SYR',
-                'country_code' => '760',
-                'iso_3166_2' => 'ISO 3166-2:SY',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'TW' => [
-                'name' => 'Taiwan, Province of China',
-                'alpha_2' => 'TW',
-                'alpha_3' => 'TWN',
-                'country_code' => '158',
-                'iso_3166_2' => 'ISO 3166-2:TW',
-                'region' => 'Asia',
-                'sub_region' => 'Eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '030',
-                'intermediate_region_code' => ''
-            ],
-            'TJ' => [
-                'name' => 'Tajikistan',
-                'alpha_2' => 'TJ',
-                'alpha_3' => 'TJK',
-                'country_code' => '762',
-                'iso_3166_2' => 'ISO 3166-2:TJ',
-                'region' => 'Asia',
-                'sub_region' => 'Central Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '143',
-                'intermediate_region_code' => ''
-            ],
-            'TZ' => [
-                'name' => 'Tanzania, United Republic of',
-                'alpha_2' => 'TZ',
-                'alpha_3' => 'TZA',
-                'country_code' => '834',
-                'iso_3166_2' => 'ISO 3166-2:TZ',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'TH' => [
-                'name' => 'Thailand',
-                'alpha_2' => 'TH',
-                'alpha_3' => 'THA',
-                'country_code' => '764',
-                'iso_3166_2' => 'ISO 3166-2:TH',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'TL' => [
-                'name' => 'Timor-Leste',
-                'alpha_2' => 'TL',
-                'alpha_3' => 'TLS',
-                'country_code' => '626',
-                'iso_3166_2' => 'ISO 3166-2:TL',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'TG' => [
-                'name' => 'Togo',
-                'alpha_2' => 'TG',
-                'alpha_3' => 'TGO',
-                'country_code' => '768',
-                'iso_3166_2' => 'ISO 3166-2:TG',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Western Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '011'
-            ],
-            'TK' => [
-                'name' => 'Tokelau',
-                'alpha_2' => 'TK',
-                'alpha_3' => 'TKL',
-                'country_code' => '772',
-                'iso_3166_2' => 'ISO 3166-2:TK',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'TO' => [
-                'name' => 'Tonga',
-                'alpha_2' => 'TO',
-                'alpha_3' => 'TON',
-                'country_code' => '776',
-                'iso_3166_2' => 'ISO 3166-2:TO',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'TT' => [
-                'name' => 'Trinidad and Tobago',
-                'alpha_2' => 'TT',
-                'alpha_3' => 'TTO',
-                'country_code' => '780',
-                'iso_3166_2' => 'ISO 3166-2:TT',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'TN' => [
-                'name' => 'Tunisia',
-                'alpha_2' => 'TN',
-                'alpha_3' => 'TUN',
-                'country_code' => '788',
-                'iso_3166_2' => 'ISO 3166-2:TN',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'TR' => [
-                'name' => 'Turkey',
-                'alpha_2' => 'TR',
-                'alpha_3' => 'TUR',
-                'country_code' => '792',
-                'iso_3166_2' => 'ISO 3166-2:TR',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'TM' => [
-                'name' => 'Turkmenistan',
-                'alpha_2' => 'TM',
-                'alpha_3' => 'TKM',
-                'country_code' => '795',
-                'iso_3166_2' => 'ISO 3166-2:TM',
-                'region' => 'Asia',
-                'sub_region' => 'Central Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '143',
-                'intermediate_region_code' => ''
-            ],
-            'TC' => [
-                'name' => 'Turks and Caicos Islands',
-                'alpha_2' => 'TC',
-                'alpha_3' => 'TCA',
-                'country_code' => '796',
-                'iso_3166_2' => 'ISO 3166-2:TC',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'TV' => [
-                'name' => 'Tuvalu',
-                'alpha_2' => 'TV',
-                'alpha_3' => 'TUV',
-                'country_code' => '798',
-                'iso_3166_2' => 'ISO 3166-2:TV',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'UG' => [
-                'name' => 'Uganda',
-                'alpha_2' => 'UG',
-                'alpha_3' => 'UGA',
-                'country_code' => '800',
-                'iso_3166_2' => 'ISO 3166-2:UG',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'UA' => [
-                'name' => 'Ukraine',
-                'alpha_2' => 'UA',
-                'alpha_3' => 'UKR',
-                'country_code' => '804',
-                'iso_3166_2' => 'ISO 3166-2:UA',
-                'region' => 'Europe',
-                'sub_region' => 'Eastern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '151',
-                'intermediate_region_code' => ''
-            ],
-            'AE' => [
-                'name' => 'United Arab Emirates',
-                'alpha_2' => 'AE',
-                'alpha_3' => 'ARE',
-                'country_code' => '784',
-                'iso_3166_2' => 'ISO 3166-2:AE',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'GB' => [
-                'name' => 'United Kingdom of Great Britain and Northern Ireland',
-                'alpha_2' => 'GB',
-                'alpha_3' => 'GBR',
-                'country_code' => '826',
-                'iso_3166_2' => 'ISO 3166-2:GB',
-                'region' => 'Europe',
-                'sub_region' => 'Northern Europe',
-                'intermediate_region' => '',
-                'region_code' => '150',
-                'sub_region_code' => '154',
-                'intermediate_region_code' => ''
-            ],
-            'US' => [
-                'name' => 'United States of America',
-                'alpha_2' => 'US',
-                'alpha_3' => 'USA',
-                'country_code' => '840',
-                'iso_3166_2' => 'ISO 3166-2:US',
-                'region' => 'Americas',
-                'sub_region' => 'Northern America',
-                'intermediate_region' => '',
-                'region_code' => '019',
-                'sub_region_code' => '021',
-                'intermediate_region_code' => ''
-            ],
-            'UM' => [
-                'name' => 'United States Minor Outlying Islands',
-                'alpha_2' => 'UM',
-                'alpha_3' => 'UMI',
-                'country_code' => '581',
-                'iso_3166_2' => 'ISO 3166-2:UM',
-                'region' => 'Oceania',
-                'sub_region' => 'Micronesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '057',
-                'intermediate_region_code' => ''
-            ],
-            'UY' => [
-                'name' => 'Uruguay',
-                'alpha_2' => 'UY',
-                'alpha_3' => 'URY',
-                'country_code' => '858',
-                'iso_3166_2' => 'ISO 3166-2:UY',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'UZ' => [
-                'name' => 'Uzbekistan',
-                'alpha_2' => 'UZ',
-                'alpha_3' => 'UZB',
-                'country_code' => '860',
-                'iso_3166_2' => 'ISO 3166-2:UZ',
-                'region' => 'Asia',
-                'sub_region' => 'Central Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '143',
-                'intermediate_region_code' => ''
-            ],
-            'VU' => [
-                'name' => 'Vanuatu',
-                'alpha_2' => 'VU',
-                'alpha_3' => 'VUT',
-                'country_code' => '548',
-                'iso_3166_2' => 'ISO 3166-2:VU',
-                'region' => 'Oceania',
-                'sub_region' => 'Melanesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '054',
-                'intermediate_region_code' => ''
-            ],
-            'VE' => [
-                'name' => 'Venezuela (Bolivarian Republic of)',
-                'alpha_2' => 'VE',
-                'alpha_3' => 'VEN',
-                'country_code' => '862',
-                'iso_3166_2' => 'ISO 3166-2:VE',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'South America',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '005'
-            ],
-            'VN' => [
-                'name' => 'Viet Nam',
-                'alpha_2' => 'VN',
-                'alpha_3' => 'VNM',
-                'country_code' => '704',
-                'iso_3166_2' => 'ISO 3166-2:VN',
-                'region' => 'Asia',
-                'sub_region' => 'South-eastern Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '035',
-                'intermediate_region_code' => ''
-            ],
-            'VG' => [
-                'name' => 'Virgin Islands (British)',
-                'alpha_2' => 'VG',
-                'alpha_3' => 'VGB',
-                'country_code' => '092',
-                'iso_3166_2' => 'ISO 3166-2:VG',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'VI' => [
-                'name' => 'Virgin Islands (U.S.)',
-                'alpha_2' => 'VI',
-                'alpha_3' => 'VIR',
-                'country_code' => '850',
-                'iso_3166_2' => 'ISO 3166-2:VI',
-                'region' => 'Americas',
-                'sub_region' => 'Latin America and the Caribbean',
-                'intermediate_region' => 'Caribbean',
-                'region_code' => '019',
-                'sub_region_code' => '419',
-                'intermediate_region_code' => '029'
-            ],
-            'WF' => [
-                'name' => 'Wallis and Futuna',
-                'alpha_2' => 'WF',
-                'alpha_3' => 'WLF',
-                'country_code' => '876',
-                'iso_3166_2' => 'ISO 3166-2:WF',
-                'region' => 'Oceania',
-                'sub_region' => 'Polynesia',
-                'intermediate_region' => '',
-                'region_code' => '009',
-                'sub_region_code' => '061',
-                'intermediate_region_code' => ''
-            ],
-            'EH' => [
-                'name' => 'Western Sahara',
-                'alpha_2' => 'EH',
-                'alpha_3' => 'ESH',
-                'country_code' => '732',
-                'iso_3166_2' => 'ISO 3166-2:EH',
-                'region' => 'Africa',
-                'sub_region' => 'Northern Africa',
-                'intermediate_region' => '',
-                'region_code' => '002',
-                'sub_region_code' => '015',
-                'intermediate_region_code' => ''
-            ],
-            'YE' => [
-                'name' => 'Yemen',
-                'alpha_2' => 'YE',
-                'alpha_3' => 'YEM',
-                'country_code' => '887',
-                'iso_3166_2' => 'ISO 3166-2:YE',
-                'region' => 'Asia',
-                'sub_region' => 'Western Asia',
-                'intermediate_region' => '',
-                'region_code' => '142',
-                'sub_region_code' => '145',
-                'intermediate_region_code' => ''
-            ],
-            'ZM' => [
-                'name' => 'Zambia',
-                'alpha_2' => 'ZM',
-                'alpha_3' => 'ZMB',
-                'country_code' => '894',
-                'iso_3166_2' => 'ISO 3166-2:ZM',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
-            ],
-            'ZW' => [
-                'name' => 'Zimbabwe',
-                'alpha_2' => 'ZW',
-                'alpha_3' => 'ZWE',
-                'country_code' => '716',
-                'iso_3166_2' => 'ISO 3166-2:ZW',
-                'region' => 'Africa',
-                'sub_region' => 'Sub-Saharan Africa',
-                'intermediate_region' => 'Eastern Africa',
-                'region_code' => '002',
-                'sub_region_code' => '202',
-                'intermediate_region_code' => '014'
+            '100000001' => [
+                'country' => 'Afghanistan',
+                'country_code' => 'AF',
+                'un_region' => 'Southern Asia'
+            ],
+            '100001074' => [
+                'country' => 'Åland Islands',
+                'country_code' => 'AX',
+                'un_region' => 'Northern Europe'
+            ],
+            '100001091' => [
+                'country' => 'Albania',
+                'country_code' => 'AL',
+                'un_region' => 'Southern Europe'
+            ],
+            '100385185' => [
+                'country' => 'Algeria',
+                'country_code' => 'DZ',
+                'un_region' => 'Northern Africa'
+            ],
+            '100002800' => [
+                'country' => 'American Samoa',
+                'country_code' => 'AS',
+                'un_region' => 'Polynesia'
+            ],
+            '100001519' => [
+                'country' => 'Andorra',
+                'country_code' => 'AD',
+                'un_region' => 'Southern Europe'
+            ],
+            '100000364' => [
+                'country' => 'Angola',
+                'country_code' => 'AO',
+                'un_region' => 'Middle Africa'
+            ],
+            '100001073' => [
+                'country' => 'Anguilla',
+                'country_code' => 'AI',
+                'un_region' => 'Caribbean'
+            ],
+            '100002895' => [
+                'country' => 'Antarctica',
+                'country_code' => 'AQ',
+                'un_region' => ''
+            ],
+            '100002901' => [
+                'country' => 'Antigua and Barbuda',
+                'country_code' => 'AG',
+                'un_region' => 'Caribbean'
+            ],
+            '100002260' => [
+                'country' => 'Argentina',
+                'country_code' => 'AR',
+                'un_region' => 'South America'
+            ],
+            '100002788' => [
+                'country' => 'Armenia',
+                'country_code' => 'AM',
+                'un_region' => 'Western Asia'
+            ],
+            '100000000' => [
+                'country' => 'Aruba',
+                'country_code' => 'AW',
+                'un_region' => 'Caribbean'
+            ],
+            '100002910' => [
+                'country' => 'Australia',
+                'country_code' => 'AU',
+                'un_region' => 'Australia and New Zealand'
+            ],
+            '100003491' => [
+                'country' => 'Austria',
+                'country_code' => 'AT',
+                'un_region' => 'Western Europe'
+            ],
+            '100005723' => [
+                'country' => 'Azerbaijan',
+                'country_code' => 'AZ',
+                'un_region' => 'Western Asia'
+            ],
+            '100024587' => [
+                'country' => 'Bahamas',
+                'country_code' => 'BS',
+                'un_region' => 'Caribbean'
+            ],
+            '100024581' => [
+                'country' => 'Bahrain',
+                'country_code' => 'BH',
+                'un_region' => 'Western Asia'
+            ],
+            '100018514' => [
+                'country' => 'Bangladesh',
+                'country_code' => 'BD',
+                'un_region' => 'Southern Asia'
+            ],
+            '100041079' => [
+                'country' => 'Barbados',
+                'country_code' => 'BB',
+                'un_region' => 'Caribbean'
+            ],
+            '100024784' => [
+                'country' => 'Belarus',
+                'country_code' => 'BY',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100017364' => [
+                'country' => 'Belgium',
+                'country_code' => 'BE',
+                'un_region' => 'Western Europe'
+            ],
+            '100024909' => [
+                'country' => 'Belize',
+                'country_code' => 'BZ',
+                'un_region' => 'Central America'
+            ],
+            '100018011' => [
+                'country' => 'Benin',
+                'country_code' => 'BJ',
+                'un_region' => 'Western Africa'
+            ],
+            '100024916' => [
+                'country' => 'Bermuda',
+                'country_code' => 'BM',
+                'un_region' => 'Northern America'
+            ],
+            '100041128' => [
+                'country' => 'Bhutan',
+                'country_code' => 'BT',
+                'un_region' => 'Southern Asia'
+            ],
+            '100024928' => [
+                'country' => 'Bolivia [Plurinational State of)',
+                'country_code' => 'BO',
+                'un_region' => 'South America'
+            ],
+            '100018100' => [
+                'country' => 'Bonaire, Sint Eustatius and Saba',
+                'country_code' => 'BQ',
+                'un_region' => 'Caribbean'
+            ],
+            '100024620' => [
+                'country' => 'Bosnia and Herzegovina',
+                'country_code' => 'BA',
+                'un_region' => 'Southern Europe'
+            ],
+            '100041355' => [
+                'country' => 'Botswana',
+                'country_code' => 'BW',
+                'un_region' => 'Southern Africa'
+            ],
+            '100041354' => [
+                'country' => 'Bouvet Island',
+                'country_code' => 'BV',
+                'un_region' => 'South America'
+            ],
+            '100025352' => [
+                'country' => 'Brazil',
+                'country_code' => 'BR',
+                'un_region' => 'South America'
+            ],
+            '100222390' => [
+                'country' => 'British Indian Ocean Territory',
+                'country_code' => 'IO',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100041091' => [
+                'country' => 'Brunei Darussalam',
+                'country_code' => 'BN',
+                'sub_region' => 'South-eastern Asia'
+            ],
+            '100024289' => [
+                'country' => 'Bulgaria',
+                'country_code' => 'BG',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100018104' => [
+                'country' => 'Burkina Faso',
+                'country_code' => 'BF',
+                'un_region' => 'Western Africa'
+            ],
+            '100005813' => [
+                'country' => 'Burundi',
+                'country_code' => 'BI',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100055707' => [
+                'country' => 'Cabo Verde',
+                'country_code' => 'CV',
+                'un_region' => 'Western Africa'
+            ],
+            '100235196' => [
+                'country' => 'Cambodia',
+                'country_code' => 'KH',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100053847' => [
+                'country' => 'Cameroon',
+                'country_code' => 'CM',
+                'un_region' => 'Middle Africa'
+            ],
+            '100041471' => [
+                'country' => 'Canada',
+                'country_code' => 'CA',
+                'un_region' => 'Northern America'
+            ],
+            '100056006' => [
+                'country' => 'Cayman Islands',
+                'country_code' => 'KY',
+                'un_region' => 'Caribbean'
+            ],
+            '100041402' => [
+                'country' => 'Central African Republic',
+                'country_code' => 'CF',
+                'un_region' => 'Middle Africa'
+            ],
+            '100343145' => [
+                'country' => 'Chad',
+                'country_code' => 'TD',
+                'un_region' => 'Middle Africa'
+            ],
+            '100050338' => [
+                'country' => 'Chile',
+                'country_code' => 'CL',
+                'un_region' => 'South America'
+            ],
+            '100050711' => [
+                'country' => 'China',
+                'country_code' => 'CN',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100056005' => [
+                'country' => 'Christmas Island',
+                'country_code' => 'CX',
+                'un_region' => 'Australia and New Zealand'
+            ],
+            '100047360' => [
+                'country' => 'Cocos (Keeling) Islands',
+                'country_code' => 'CC',
+                'un_region' => 'Australia and New Zealand'
+            ],
+            '100054605' => [
+                'country' => 'Colombia',
+                'country_code' => 'CO',
+                'un_region' => 'South America'
+            ],
+            '100055703' => [
+                'country' => 'Comoros',
+                'country_code' => 'KM',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100054543' => [
+                'country' => 'Congo',
+                'country_code' => 'CG',
+                'un_region' => 'Middle Africa'
+            ],
+            '100054276' => [
+                'country' => 'Congo, Democratic Republic of the',
+                'country_code' => 'CD',
+                'un_region' => 'Middle Africa'
+            ],
+            '100054604' => [
+                'country' => 'Cook Islands',
+                'country_code' => 'CK',
+                'un_region' => 'Polynesia'
+            ],
+            '100055730' => [
+                'country' => 'Costa Rica',
+                'country_code' => 'CR',
+                'un_region' => 'Central America'
+            ],
+            '100053495' => [
+                'country' => 'Côte d\'Ivoire',
+                'country_code' => 'CI',
+                'un_region' => 'Western Africa'
+            ],
+            '100133112' => [
+                'country' => 'Croatia',
+                'country_code' => 'HR',
+                'un_region' => 'Southern Europe'
+            ],
+            '100055819' => [
+                'country' => 'Cuba',
+                'country_code' => 'CU',
+                'un_region' => 'Caribbean'
+            ],
+            '100056004' => [
+                'country' => 'Curaçao',
+                'country_code' => 'CW',
+                'un_region' => 'Caribbean'
+            ],
+            '100056014' => [
+                'country' => 'Cyprus',
+                'country_code' => 'CY',
+                'un_region' => 'Western Asia'
+            ],
+            '100056020' => [
+                'country' => 'Czechia',
+                'country_code' => 'CZ',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100072563' => [
+                'country' => 'Denmark',
+                'country_code' => 'DK',
+                'un_region' => 'Northern Europe'
+            ],
+            '100072535' => [
+                'country' => 'Djibouti',
+                'country_code' => 'DJ',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100072552' => [
+                'country' => 'Dominica',
+                'country_code' => 'DM',
+                'un_region' => 'Caribbean'
+            ],
+            '100072668' => [
+                'country' => 'Dominican Republic',
+                'country_code' => 'DO',
+                'un_region' => 'Caribbean'
+            ],
+            '100072856' => [
+                'country' => 'Ecuador',
+                'country_code' => 'EC',
+                'un_region' => 'South America'
+            ],
+            '100074143' => [
+                'country' => 'Egypt',
+                'country_code' => 'EG',
+                'un_region' => 'Northern Africa'
+            ],
+            '100341608' => [
+                'country' => 'El Salvador',
+                'country_code' => 'SV',
+                'un_region' => 'Central America'
+            ],
+            '100131824' => [
+                'country' => 'Equatorial Guinea',
+                'country_code' => 'GQ',
+                'un_region' => 'Middle Africa'
+            ],
+            '100074514' => [
+                'country' => 'Eritrea',
+                'country_code' => 'ER',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100083318' => [
+                'country' => 'Estonia',
+                'country_code' => 'EE',
+                'un_region' => 'Northern Europe'
+            ],
+            '100342975' => [
+                'country' => 'Eswatini (Swaziland)',
+                'country_code' => 'SZ',
+                'un_region' => 'Southern Africa'
+            ],
+            '100088242' => [
+                'country' => 'Ethiopia',
+                'country_code' => 'ET',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100089588' => [
+                'country' => 'Falkland Islands (Malvinas)',
+                'country_code' => 'FK',
+                'un_region' => 'South America'
+            ],
+            '100130389' => [
+                'country' => 'Faroe Islands',
+                'country_code' => 'FO',
+                'un_region' => 'Northern Europe'
+            ],
+            '100089567' => [
+                'country' => 'Fiji',
+                'country_code' => 'FJ',
+                'un_region' => 'Melanesia'
+            ],
+            '100089023' => [
+                'country' => 'Finland',
+                'country_code' => 'FI',
+                'un_region' => 'Northern Europe'
+            ],
+            '100089589' => [
+                'country' => 'France',
+                'country_code' => 'FR',
+                'un_region' => 'Western Europe'
+            ],
+            '100132604' => [
+                'country' => 'French Guiana',
+                'country_code' => 'GF',
+                'un_region' => 'South America'
+            ],
+            '100314694' => [
+                'country' => 'French Polynesia',
+                'country_code' => 'PF',
+                'un_region' => 'Polynesia'
+            ],
+            '100002896' => [
+                'country' => 'French Southern Territories',
+                'country_code' => 'TF',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100130431' => [
+                'country' => 'Gabon',
+                'country_code' => 'GA',
+                'un_region' => 'Middle Africa'
+            ],
+            '100131733' => [
+                'country' => 'Gambia',
+                'country_code' => 'GM',
+                'un_region' => 'Western Africa'
+            ],
+            '100131072' => [
+                'country' => 'Georgia',
+                'country_code' => 'GE',
+                'un_region' => 'Western Asia'
+            ],
+            '100056133' => [
+                'country' => 'Germany',
+                'country_code' => 'DE',
+                'un_region' => 'Western Europe'
+            ],
+            '100131170' => [
+                'country' => 'Ghana',
+                'country_code' => 'GH',
+                'un_region' => 'Western Africa'
+            ],
+            '100131318' => [
+                'country' => 'Gibraltar',
+                'country_code' => 'GI',
+                'un_region' => 'Southern Europe'
+            ],
+            '100131864' => [
+                'country' => 'Greece',
+                'country_code' => 'GR',
+                'un_region' => 'Southern Europe'
+            ],
+            '100132221' => [
+                'country' => 'Greenland',
+                'country_code' => 'GL',
+                'un_region' => 'Northern America'
+            ],
+            '100132213' => [
+                'country' => 'Grenada',
+                'country_code' => 'GD',
+                'un_region' => 'Caribbean'
+            ],
+            '100131698' => [
+                'country' => 'Guadeloupe',
+                'country_code' => 'GP',
+                'un_region' => 'Caribbean'
+            ],
+            '100132628' => [
+                'country' => 'Guam',
+                'country_code' => 'GU',
+                'un_region' => 'Micronesia'
+            ],
+            '100132227' => [
+                'country' => 'Guatemala',
+                'country_code' => 'GT',
+                'un_region' => 'Central America'
+            ],
+            '100131154' => [
+                'country' => 'Guernsey',
+                'country_code' => 'GG',
+                'un_region' => 'Northern Europe'
+            ],
+            '100131319' => [
+                'country' => 'Guinea',
+                'country_code' => 'GN',
+                'un_region' => 'Western Africa'
+            ],
+            '100131777' => [
+                'country' => 'Guinea-Bissau',
+                'country_code' => 'GW',
+                'un_region' => 'Western Africa'
+            ],
+            '100132648' => [
+                'country' => 'Guyana',
+                'country_code' => 'GY',
+                'un_region' => 'South America'
+            ],
+            '100133694' => [
+                'country' => 'Haiti',
+                'country_code' => 'HT',
+                'un_region' => 'Caribbean'
+            ],
+            '100132794' => [
+                'country' => 'Heard Island and McDonald Islands',
+                'country_code' => 'HM',
+                'un_region' => 'Australia and New Zealand'
+            ],
+            '100367575' => [
+                'country' => 'Vatican City',
+                'country_code' => 'VA',
+                'un_region' => 'Southern Europe'
+            ],
+            '100132795' => [
+                'country' => 'Honduras',
+                'country_code' => 'HN',
+                'un_region' => 'Central America'
+            ],
+            '100132775' => [
+                'country' => 'Hong Kong',
+                'country_code' => 'HK',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100134422' => [
+                'country' => 'Hungary',
+                'country_code' => 'HU',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100222839' => [
+                'country' => 'Iceland',
+                'country_code' => 'IS',
+                'un_region' => 'Northern Europe'
+            ],
+            '100219347' => [
+                'country' => 'India',
+                'country_code' => 'IN',
+                'un_region' => 'Southern Asia'
+            ],
+            '100385182' => [
+                'country' => 'Indonesia',
+                'country_code' => 'ID',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100222418' => [
+                'country' => 'Iran (Islamic Republic of)',
+                'country_code' => 'IR',
+                'un_region' => 'Southern Asia'
+            ],
+            '100222718' => [
+                'country' => 'Iraq',
+                'country_code' => 'IQ',
+                'un_region' => 'Western Asia'
+            ],
+            '100222391' => [
+                'country' => 'Ireland',
+                'country_code' => 'IE',
+                'un_region' => 'Northern Europe'
+            ],
+            '100219316' => [
+                'country' => 'Isle of Man',
+                'country_code' => 'IM',
+                'un_region' => 'Northern Europe'
+            ],
+            '100222967' => [
+                'country' => 'Israel',
+                'country_code' => 'IL',
+                'un_region' => 'Western Asia'
+            ],
+            '100222975' => [
+                'country' => 'Italy',
+                'country_code' => 'IT',
+                'un_region' => 'Southern Europe'
+            ],
+            '100231206' => [
+                'country' => 'Jamaica',
+                'country_code' => 'JM',
+                'un_region' => 'Caribbean'
+            ],
+            '100231299' => [
+                'country' => 'Japan',
+                'country_code' => 'JP',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100231221' => [
+                'country' => 'Jersey',
+                'country_code' => 'JE',
+                'un_region' => 'Northern Europe'
+            ],
+            '100231234' => [
+                'country' => 'Jordan',
+                'country_code' => 'JO',
+                'un_region' => 'Western Asia'
+            ],
+            '100233158' => [
+                'country' => 'Kazakhstan',
+                'country_code' => 'KZ',
+                'un_region' => 'Central Asia'
+            ],
+            '100233347' => [
+                'country' => 'Kenya',
+                'country_code' => 'KE',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100238556' => [
+                'country' => 'Kiribati',
+                'country_code' => 'KI',
+                'un_region' => 'Micronesia'
+            ],
+            '100238572' => [
+                'country' => 'Korea (Democratic People\'s Republic of)',
+                'country_code' => 'KP',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100309648' => [
+                'country' => 'Korea, Republic of',
+                'country_code' => 'KR',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100238819' => [
+                'country' => 'Kuwait',
+                'country_code' => 'KW',
+                'un_region' => 'Western Asia'
+            ],
+            '100235142' => [
+                'country' => 'Kyrgyzstan',
+                'country_code' => 'KG',
+                'un_region' => 'Central Asia'
+            ],
+            '100238826' => [
+                'country' => 'Lao People\'s Democratic Republic',
+                'country_code' => 'LA',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100241717' => [
+                'country' => 'Latvia',
+                'country_code' => 'LV',
+                'un_region' => 'Northern Europe'
+            ],
+            '100238987' => [
+                'country' => 'Lebanon',
+                'country_code' => 'LB',
+                'un_region' => 'Western Asia'
+            ],
+            '100241376' => [
+                'country' => 'Lesotho',
+                'country_code' => 'LS',
+                'un_region' => 'Southern Africa'
+            ],
+            '100240594' => [
+                'country' => 'Liberia',
+                'country_code' => 'LR',
+                'un_region' => 'Western Africa'
+            ],
+            '100240981' => [
+                'country' => 'Libya',
+                'country_code' => 'LY',
+                'un_region' => 'Northern Africa'
+            ],
+            '100241015' => [
+                'country' => 'Liechtenstein',
+                'country_code' => 'LI',
+                'un_region' => 'Western Europe'
+            ],
+            '100241387' => [
+                'country' => 'Lithuania',
+                'country_code' => 'LT',
+                'un_region' => 'Northern Europe'
+            ],
+            '100241446' => [
+                'country' => 'Luxembourg',
+                'country_code' => 'LU',
+                'un_region' => 'Western Europe'
+            ],
+            '100241749' => [
+                'country' => 'Macao',
+                'country_code' => 'MO',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100243784' => [
+                'country' => 'Madagascar',
+                'country_code' => 'MG',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100249866' => [
+                'country' => 'Malawi',
+                'country_code' => 'MW',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100253277' => [
+                'country' => 'Malaysia',
+                'country_code' => 'MY',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100245356' => [
+                'country' => 'Maldives',
+                'country_code' => 'MV',
+                'un_region' => 'Southern Asia'
+            ],
+            '100247331' => [
+                'country' => 'Mali',
+                'country_code' => 'ML',
+                'un_region' => 'Western Africa'
+            ],
+            '100248384' => [
+                'country' => 'Malta',
+                'country_code' => 'MT',
+                'un_region' => 'Southern Europe'
+            ],
+            '100247244' => [
+                'country' => 'Marshall Islands',
+                'country_code' => 'MH',
+                'un_region' => 'Micronesia'
+            ],
+            '100249816' => [
+                'country' => 'Martinique',
+                'country_code' => 'MQ',
+                'un_region' => 'Caribbean'
+            ],
+            '100249754' => [
+                'country' => 'Mauritania',
+                'country_code' => 'MR',
+                'un_region' => 'Western Africa'
+            ],
+            '100249853' => [
+                'country' => 'Mauritius',
+                'country_code' => 'MU',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100253438' => [
+                'country' => 'Mayotte',
+                'country_code' => 'YT',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100245357' => [
+                'country' => 'Mexico',
+                'country_code' => 'MX',
+                'un_region' => 'Central America'
+            ],
+            '100130426' => [
+                'country' => 'Micronesia (Federated States of)',
+                'country_code' => 'FM',
+                'un_region' => 'Micronesia'
+            ],
+            '100243746' => [
+                'country' => 'Moldova, Republic of',
+                'country_code' => 'MD',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100243745' => [
+                'country' => 'Monaco',
+                'country_code' => 'MC',
+                'un_region' => 'Western Europe'
+            ],
+            '100248845' => [
+                'country' => 'Mongolia',
+                'country_code' => 'MN',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100248823' => [
+                'country' => 'Montenegro',
+                'country_code' => 'ME',
+                'un_region' => 'Southern Europe'
+            ],
+            '100249812' => [
+                'country' => 'Montserrat',
+                'country_code' => 'MS',
+                'un_region' => 'Caribbean'
+            ],
+            '100241761' => [
+                'country' => 'Morocco',
+                'country_code' => 'MA',
+                'un_region' => 'Northern Africa'
+            ],
+            '100249200' => [
+                'country' => 'Mozambique',
+                'country_code' => 'MZ',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100248458' => [
+                'country' => 'Myanmar',
+                'country_code' => 'MM',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100253456' => [
+                'country' => 'Namibia',
+                'country_code' => 'NA',
+                'un_region' => 'Southern Africa'
+            ],
+            '100259807' => [
+                'country' => 'Nauru',
+                'country_code' => 'NR',
+                'un_region' => 'Micronesia'
+            ],
+            '100255729' => [
+                'country' => 'Nepal',
+                'country_code' => 'NP',
+                'un_region' => 'Southern Asia'
+            ],
+            '100254765' => [
+                'country' => 'Netherlands',
+                'country_code' => 'NL',
+                'un_region' => 'Western Europe'
+            ],
+            '100253577' => [
+                'country' => 'New Caledonia',
+                'country_code' => 'NC',
+                'un_region' => 'Melanesia'
+            ],
+            '100259822' => [
+                'country' => 'New Zealand',
+                'country_code' => 'NZ',
+                'un_region' => 'Australia and New Zealand'
+            ],
+            '100254606' => [
+                'country' => 'Nicaragua',
+                'country_code' => 'NI',
+                'un_region' => 'Central America'
+            ],
+            '100253616' => [
+                'country' => 'Niger',
+                'country_code' => 'NE',
+                'un_region' => 'Western Africa'
+            ],
+            '100253793' => [
+                'country' => 'Nigeria',
+                'country_code' => 'NG',
+                'un_region' => 'Western Africa'
+            ],
+            '100254764' => [
+                'country' => 'Niue',
+                'country_code' => 'NU',
+                'un_region' => 'Polynesia'
+            ],
+            '100253792' => [
+                'country' => 'Norfolk Island',
+                'country_code' => 'NF',
+                'un_region' => 'Australia and New Zealand'
+            ],
+            '100247245' => [
+                'country' => 'North Macedonia',
+                'country_code' => 'MK',
+                'un_region' => 'Southern Europe'
+            ],
+            '100249195' => [
+                'country' => 'Northern Mariana Islands',
+                'country_code' => 'MP',
+                'un_region' => 'Micronesia'
+            ],
+            '100255271' => [
+                'country' => 'Norway',
+                'country_code' => 'NO',
+                'un_region' => 'Northern Europe'
+            ],
+            '100259917' => [
+                'country' => 'Oman',
+                'country_code' => 'OM',
+                'un_region' => 'Western Asia'
+            ],
+            '100259978' => [
+                'country' => 'Pakistan',
+                'country_code' => 'PK',
+                'un_region' => 'Southern Asia'
+            ],
+            '100306566' => [
+                'country' => 'Palau',
+                'country_code' => 'PW',
+                'un_region' => 'Micronesia'
+            ],
+            '100314675' => [
+                'country' => 'Palestine, State of',
+                'country_code' => 'PS',
+                'un_region' => 'Western Asia'
+            ],
+            '100260160' => [
+                'country' => 'Panama',
+                'country_code' => 'PA',
+                'un_region' => 'Central America'
+            ],
+            '100306583' => [
+                'country' => 'Papua New Guinea',
+                'country_code' => 'PG',
+                'un_region' => 'Melanesia'
+            ],
+            '100314438' => [
+                'country' => 'Paraguay',
+                'country_code' => 'PY',
+                'un_region' => 'South America'
+            ],
+            '100260852' => [
+                'country' => 'Peru',
+                'country_code' => 'PE',
+                'un_region' => 'South America'
+            ],
+            '100262889' => [
+                'country' => 'Philippines',
+                'country_code' => 'PH',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100260851' => [
+                'country' => 'Pitcairn',
+                'country_code' => 'PN',
+                'un_region' => 'Polynesia'
+            ],
+            '100306693' => [
+                'country' => 'Poland',
+                'country_code' => 'PL',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100309849' => [
+                'country' => 'Portugal',
+                'country_code' => 'PT',
+                'un_region' => 'Southern Europe'
+            ],
+            '100309569' => [
+                'country' => 'Puerto Rico',
+                'country_code' => 'PR',
+                'un_region' => 'Caribbean'
+            ],
+            '100314700' => [
+                'country' => 'Qatar',
+                'country_code' => 'QA',
+                'un_region' => 'Western Asia'
+            ],
+            '100314708' => [
+                'country' => 'Réunion',
+                'country_code' => 'RE',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100314737' => [
+                'country' => 'Romania',
+                'country_code' => 'RO',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100317719' => [
+                'country' => 'Russian Federation',
+                'country_code' => 'RU',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100322810' => [
+                'country' => 'Rwanda',
+                'country_code' => 'RW',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100024783' => [
+                'country' => 'Saint Barthélemy',
+                'country_code' => 'BL',
+                'un_region' => 'Caribbean'
+            ],
+            '100341225' => [
+                'country' => 'Saint Helena, Ascension and Tristan da Cunha',
+                'country_code' => 'SH',
+                'un_region' => 'Western Africa'
+            ],
+            '100238557' => [
+                'country' => 'Saint Kitts and Nevis',
+                'country_code' => 'KN',
+                'un_region' => 'Caribbean'
+            ],
+            '100241004' => [
+                'country' => 'Saint Lucia',
+                'country_code' => 'LC',
+                'un_region' => 'Caribbean'
+            ],
+            '100241760' => [
+                'country' => 'Saint Martin (French part)',
+                'country_code' => 'MF',
+                'un_region' => 'Caribbean'
+            ],
+            '100341992' => [
+                'country' => 'Saint Pierre and Miquelon',
+                'country_code' => 'PM',
+                'un_region' => 'Northern America'
+            ],
+            '100367576' => [
+                'country' => 'Saint Vincent and the Grenadines',
+                'country_code' => 'VC',
+                'un_region' => 'Caribbean'
+            ],
+            '100379993' => [
+                'country' => 'Samoa',
+                'country_code' => 'WS',
+                'un_region' => 'Polynesia'
+            ],
+            '100341889' => [
+                'country' => 'San Marino',
+                'country_code' => 'SM',
+                'un_region' => 'Southern Europe'
+            ],
+            '100342287' => [
+                'country' => 'Sao Tome and Principe',
+                'country_code' => 'ST',
+                'un_region' => 'Middle Africa'
+            ],
+            '100340252' => [
+                'country' => 'Saudi Arabia',
+                'country_code' => 'SA',
+                'un_region' => 'Western Asia'
+            ],
+            '100340602' => [
+                'country' => 'Senegal',
+                'country_code' => 'SN',
+                'un_region' => 'Western Africa'
+            ],
+            '100341995' => [
+                'country' => 'Serbia',
+                'country_code' => 'RS',
+                'un_region' => 'Southern Europe'
+            ],
+            '100343036' => [
+                'country' => 'Seychelles',
+                'country_code' => 'SC',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100341436' => [
+                'country' => 'Sierra Leone',
+                'country_code' => 'SL',
+                'un_region' => 'Western Africa'
+            ],
+            '100341218' => [
+                'country' => 'Singapore',
+                'country_code' => 'SG',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100343035' => [
+                'country' => 'Sint Maarten (Dutch part)',
+                'country_code' => 'SX',
+                'un_region' => 'Caribbean'
+            ],
+            '100342370' => [
+                'country' => 'Slovakia',
+                'country_code' => 'SK',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100342458' => [
+                'country' => 'Slovenia',
+                'country_code' => 'SI',
+                'un_region' => 'Southern Europe'
+            ],
+            '100341242' => [
+                'country' => 'Solomon Islands',
+                'country_code' => 'SB',
+                'un_region' => 'Melanesia'
+            ],
+            '100341899' => [
+                'country' => 'Somalia',
+                'country_code' => 'SO',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100380454' => [
+                'country' => 'South Africa',
+                'country_code' => 'ZA',
+                'un_region' => 'Southern Africa'
+            ],
+            '100341224' => [
+                'country' => 'South Georgia and the South Sandwich Islands',
+                'country_code' => 'GS',
+                'un_region' => 'South America'
+            ],
+            '100342182' => [
+                'country' => 'South Sudan',
+                'country_code' => 'SS',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100074576' => [
+                'country' => 'Spain',
+                'country_code' => 'ES',
+                'un_region' => 'Southern Europe'
+            ],
+            '100241027' => [
+                'country' => 'Sri Lanka',
+                'country_code' => 'LK',
+                'un_region' => 'Southern Asia'
+            ],
+            '100340266' => [
+                'country' => 'Sudan',
+                'country_code' => 'SD',
+                'un_region' => 'Northern Africa'
+            ],
+            '100342297' => [
+                'country' => 'Suriname',
+                'country_code' => 'SR',
+                'un_region' => 'South America'
+            ],
+            '100341239' => [
+                'country' => 'Svalbard and Jan Mayen',
+                'country_code' => 'SJ',
+                'un_region' => 'Northern Europe'
+            ],
+            '100342663' => [
+                'country' => 'Sweden',
+                'country_code' => 'SE',
+                'un_region' => 'Northern Europe'
+            ],
+            '100047361' => [
+                'country' => 'Switzerland',
+                'country_code' => 'CH',
+                'un_region' => 'Western Europe'
+            ],
+            '100343063' => [
+                'country' => 'Syrian Arab Republic',
+                'country_code' => 'SY',
+                'un_region' => 'Western Asia'
+            ],
+            '100352871' => [
+                'country' => 'Taiwan, Province of China',
+                'country_code' => 'TW',
+                'un_region' => 'Eastern Asia'
+            ],
+            '100350531' => [
+                'country' => 'Tajikistan',
+                'country_code' => 'TJ',
+                'un_region' => 'Central Asia'
+            ],
+            '100352901' => [
+                'country' => 'Tanzania, United Republic of',
+                'country_code' => 'TZ',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100343599' => [
+                'country' => 'Thailand',
+                'country_code' => 'TH',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100350967' => [
+                'country' => 'Timor-Leste',
+                'country_code' => 'TL',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100343572' => [
+                'country' => 'Togo',
+                'country_code' => 'TG',
+                'un_region' => 'Western Africa'
+            ],
+            '100350956' => [
+                'country' => 'Tokelau',
+                'country_code' => 'TK',
+                'un_region' => 'Polynesia'
+            ],
+            '100351536' => [
+                'country' => 'Tonga',
+                'country_code' => 'TO',
+                'un_region' => 'Polynesia'
+            ],
+            '100351542' => [
+                'country' => 'Trinidad and Tobago',
+                'country_code' => 'TT',
+                'un_region' => 'Caribbean'
+            ],
+            '100351558' => [
+                'country' => 'Tunisia',
+                'country_code' => 'TN',
+                'un_region' => 'Northern Africa'
+            ],
+            '100351851' => [
+                'country' => 'Turkey',
+                'country_code' => 'TR',
+                'un_region' => 'Western Asia'
+            ],
+            '100350960' => [
+                'country' => 'Turkmenistan',
+                'country_code' => 'TM',
+                'un_region' => 'Central Asia'
+            ],
+            '100343138' => [
+                'country' => 'Turks and Caicos Islands',
+                'country_code' => 'TC',
+                'un_region' => 'Caribbean'
+            ],
+            '100352861' => [
+                'country' => 'Tuvalu',
+                'country_code' => 'TV',
+                'un_region' => 'Polynesia'
+            ],
+            '100356776' => [
+                'country' => 'Uganda',
+                'country_code' => 'UG',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100363308' => [
+                'country' => 'Ukraine',
+                'country_code' => 'UA',
+                'un_region' => 'Eastern Europe'
+            ],
+            '100001527' => [
+                'country' => 'United Arab Emirates',
+                'country_code' => 'AE',
+                'un_region' => 'Western Asia'
+            ],
+            '100130478' => [
+                'country' => 'United Kingdom of Great Britain and Northern Ireland',
+                'country_code' => 'GB',
+                'un_region' => 'Northern Europe'
+            ],
+            '100364199' => [
+                'country' => 'United States of America',
+                'country_code' => 'US',
+                'un_region' => 'Northern America'
+            ],
+            '100363965' => [
+                'country' => 'United States Minor Outlying Islands',
+                'country_code' => 'UM',
+                'un_region' => 'Micronesia'
+            ],
+            '100363975' => [
+                'country' => 'Uruguay',
+                'country_code' => 'UY',
+                'un_region' => 'South America'
+            ],
+            '100367399' => [
+                'country' => 'Uzbekistan',
+                'country_code' => 'UZ',
+                'un_region' => 'Central Asia'
+            ],
+            '100379914' => [
+                'country' => 'Vanuatu',
+                'country_code' => 'VU',
+                'un_region' => 'Melanesia'
+            ],
+            '100367583' => [
+                'country' => 'Venezuela (Bolivarian Republic of)',
+                'country_code' => 'VE',
+                'un_region' => 'South America'
+            ],
+            '100367977' => [
+                'country' => 'Viet Nam',
+                'country_code' => 'VN',
+                'un_region' => 'South-eastern Asia'
+            ],
+            '100367947' => [
+                'country' => 'Virgin Islands (British)',
+                'country_code' => 'VG',
+                'un_region' => 'Caribbean'
+            ],
+            '100367953' => [
+                'country' => 'Virgin Islands (U.S.)',
+                'country_code' => 'VI',
+                'un_region' => 'Caribbean'
+            ],
+            '100379984' => [
+                'country' => 'Wallis and Futuna',
+                'country_code' => 'WF',
+                'un_region' => 'Polynesia'
+            ],
+            '100074571' => [
+                'country' => 'Western Sahara',
+                'country_code' => 'EH',
+                'un_region' => 'Northern Africa'
+            ],
+            '100380099' => [
+                'country' => 'Yemen',
+                'country_code' => 'YE',
+                'un_region' => 'Western Asia'
+            ],
+            '100385027' => [
+                'country' => 'Zambia',
+                'country_code' => 'ZM',
+                'un_region' => 'Eastern Africa'
+            ],
+            '100385110' => [
+                'country' => 'Zimbabwe',
+                'country_code' => 'ZW',
+                'un_region' => 'Eastern Africa'
             ]
         ];
     }

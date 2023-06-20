@@ -54,9 +54,9 @@ jQuery(document).ready(function () {
     polygonSeries.mapPolygons.template.setAll({
       stroke: am5.color('#FFFFFF'),
       strokeWidth: 2,
-      fillOpacity: 0.2,
+      fillOpacity: 0.3,
       fill: am5.color('#808080'),
-      tooltipText: "{name}: {value}",
+      tooltipText: "{name}: 0",
       interactive: true,
       templateField: "polygonSettings"
     });
@@ -72,14 +72,31 @@ jQuery(document).ready(function () {
         if (regionWithMinCount && regionWithMaxCount) {
           let data = [];
           $.each(regions, function (idx, region) {
-            let opacity = normalise(region['count'], regionWithMinCount['count'], regionWithMaxCount['count']);
+
+            let opacity = 0;
+            let fill = 0;
+            let name = `${_.escape(window.wp_js_object.translations.regions[region['region']])}`;
+
+            // Normalise count to value between 0 - 1 range.
+            let normalised_count = normalise(region['count'], regionWithMinCount['count'], regionWithMaxCount['count']);
+            if (normalised_count > 0.5) {
+              opacity = normalised_count;
+              fill = am5.color('#25529A');
+
+            } else {
+              opacity = 0.75 + normalised_count;
+              fill = am5.color('#9BC8FE');
+            }
+
+            // Capture data point updates.
             data.push({
               'id': region['region'],
-              'name': `${_.escape(window.wp_js_object.translations.regions[region['region']])}`,
+              'name': name,
               'value': region['count'],
               'polygonSettings': {
-                'fillOpacity': (opacity > 0.3) ? opacity : (0.3 + opacity),
-                'fill': am5.color('#0000FF')
+                'fillOpacity': opacity,
+                'fill': fill,
+                'tooltipText': `${name}: ${_.escape(region['count'])}`
               }
             });
           });
