@@ -47,71 +47,57 @@ jQuery(document).ready(function () {
 
     let polygonSeries = chart.series.push(
       am5map.MapPolygonSeries.new(root, {
-        geoJSON: am5geodata_unRegionsLow
+        geoJSON: am5geodata_unRegionsLow,
+        valueField: "value",
+        calculateAggregates: true
       })
     );
+
+    polygonSeries.set('heatRules', [{
+      key: "fill",
+      target: polygonSeries.mapPolygons.template,
+      min: am5.color('#9BC8FE'),
+      max: am5.color('#25529A'),
+      dataField: 'value',
+    }]);
 
     polygonSeries.mapPolygons.template.setAll({
       stroke: am5.color('#FFFFFF'),
       strokeWidth: 2,
-      fillOpacity: 0.3,
-      fill: am5.color('#808080'),
       tooltipText: "{name}: 0",
       interactive: true,
-      templateField: "polygonSettings"
+      templateField: "polygonSettings",
+      fill: am5.color('#eee'),
     });
 
     // Fetch latest snapshot data.
     get_data(function (response) {
       if (response && response['stats'] && response['stats']['regions']) {
         let regions = response['stats']['regions'];
-        let regionWithMinCount = _.minBy(regions, 'count');
-        let regionWithMaxCount = _.maxBy(regions, 'count');
+        let data = [];
+        regions.forEach((region) => {
 
-        // Assuming valid region range has been identified, proceed with map refresh.
-        if (regionWithMinCount && regionWithMaxCount) {
-          let data = [];
-          $.each(regions, function (idx, region) {
+          let name = `${_.escape(window.wp_js_object.translations.regions[region['region']])}`;
 
-            let opacity = 0;
-            let fill = 0;
-            let name = `${_.escape(window.wp_js_object.translations.regions[region['region']])}`;
-
-            // Normalise count to value between 0 - 1 range.
-            let normalised_count = normalise(region['count'], regionWithMinCount['count'], regionWithMaxCount['count']);
-            if (normalised_count > 0.5) {
-              opacity = normalised_count;
-              fill = am5.color('#25529A');
-
-            } else {
-              opacity = 0.75 + normalised_count;
-              fill = am5.color('#9BC8FE');
+          // Capture data point updates.
+          data.push({
+            'id': region['region'],
+            'name': name,
+            'value': region['count'],
+            'polygonSettings': {
+              'tooltipText': `${name}: ${_.escape(region['count'])}`
             }
-
-            // Capture data point updates.
-            data.push({
-              'id': region['region'],
-              'name': name,
-              'value': region['count'],
-              'polygonSettings': {
-                'fillOpacity': opacity,
-                'fill': fill,
-                'tooltipText': `${name}: ${_.escape(region['count'])}`
-              }
-            });
           });
+        });
 
-          if (data.length > 0) {
-            polygonSeries.data.setAll(data);
+        if (data.length > 0) {
+          polygonSeries.data.setAll(data);
 
-            polygonSeries.mapPolygons.template.states.create("hover", {
-              fillOpacity: 1.0,
-              fill: am5.color('#000000')
-            });
-          }
+          polygonSeries.mapPolygons.template.states.create("hover", {
+            fillOpacity: .5,
+          });
         }
       }
-
       // Remove spinner.
       $(".loading-spinner").removeClass("active");
     });
