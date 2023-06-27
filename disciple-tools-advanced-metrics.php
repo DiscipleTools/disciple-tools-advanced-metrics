@@ -5,7 +5,7 @@
  * Description:
  * Text Domain: disciple-tools-advanced-metrics
  * Domain Path: /languages
- * Version:  1.1.1
+ * Version:  1.1.2
  * Author URI: https://github.com/DiscipleTools
  * GitHub Plugin URI: https://github.com/DiscipleTools/disciple-tools-advanced-metrics
  * Requires at least: 4.7.0
