@@ -5,7 +5,7 @@ jQuery(document).ready(function () {
   let chartDiv = jQuery('#chart')
 
   chartDiv.empty().html(`
-    <div class="section-header">${_.escape(window.wp_js_object.translations.title)}</div>
+    <div class="section-header">${window.SHAREDFUNCTIONS.escapeHTML(window.wp_js_object.translations.title)}</div>
     <div style="display: inline-block" class="loading-spinner active"></div>
     <hr>
 
@@ -77,7 +77,7 @@ jQuery(document).ready(function () {
         let data = [];
         regions.forEach((region) => {
 
-          let name = `${_.escape(window.wp_js_object.translations.regions[region['region']])}`;
+          let name = `${window.SHAREDFUNCTIONS.escapeHTML(window.wp_js_object.translations.regions[region['region']])}`;
 
           // Capture data point updates.
           data.push({
@@ -85,7 +85,7 @@ jQuery(document).ready(function () {
             'name': name,
             'value': region['count'],
             'polygonSettings': {
-              'tooltipText': `${name}: ${_.escape(region['count'])}`
+              'tooltipText': `${name}: ${window.SHAREDFUNCTIONS.escapeHTML(region['count'])}`
             }
           });
         });

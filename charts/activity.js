@@ -23,7 +23,7 @@ jQuery(document).ready(function() {
   let build_modal_html = () => {
     return `
         <div class="reveal medium" id="advanced_metrics_modal" data-reveal data-reset-on-close>
-            <h3 id="advanced_metrics_modal_title">${ _.escape(window.wp_js_object.translations.modal.title) }</h3>
+            <h3 id="advanced_metrics_modal_title">${ window.SHAREDFUNCTIONS.escapeHTML(window.wp_js_object.translations.modal.title) }</h3>
 
             <div id="advanced_metrics_modal_loading_spinner" class="loading-spinner" style="display: inline-block"></div>
 
@@ -31,7 +31,7 @@ jQuery(document).ready(function() {
             <div style="overflow: auto; max-height: 400px;">
               <table>
                   <thead>
-                      <th>${_.escape(window.wp_js_object.translations.modal.table_head_title)}</th>
+                      <th>${window.SHAREDFUNCTIONS.escapeHTML(window.wp_js_object.translations.modal.table_head_title)}</th>
                   </thead>
                   <tbody id="advanced_metrics_modal_table_body"></tbody>
               </table>
@@ -39,7 +39,7 @@ jQuery(document).ready(function() {
 
             <br>
             <button class="button loader" data-close aria-label="Close reveal" type="button">
-                ${ _.escape(window.wp_js_object.translations.modal.cancel_button) }
+                ${ window.SHAREDFUNCTIONS.escapeHTML(window.wp_js_object.translations.modal.cancel_button) }
             </button>
 
             <button class="close-button" data-close aria-label="Close" type="button">
@@ -50,7 +50,7 @@ jQuery(document).ready(function() {
   };
 
   chartDiv.empty().html(`
-    <div class="section-header">${ _.escape(window.wp_js_object.translations.title) }</div>
+    <div class="section-header">${ window.SHAREDFUNCTIONS.escapeHTML(window.wp_js_object.translations.title) }</div>
     <div style="display: inline-block" class="loading-spinner active"></div>
     <p>This page shows activity and actions that happened by year, month, week or day</p>
     <p>For example: how many contacts were created each year? </p>
@@ -82,8 +82,8 @@ jQuery(document).ready(function() {
 
   let display_data = (data)=>{
     let days = [];
-    _.forOwn(data, (field_value, field_key)=>{
-      days = _.union(days, field_value.counts.map(a=>a.day))
+    window.lodash.forOwn(data, (field_value, field_key)=>{
+      days = window.lodash.union(days, field_value.counts.map(a=>a.day))
     })
     days.sort((a,b)=>{
       return moment(a).isBefore(moment(b)) ? 1 : -1;
@@ -91,20 +91,20 @@ jQuery(document).ready(function() {
     let header = `<th style="min-width: 200px"></th>`
     let data_by_date = {};
     days.forEach(d=>{
-      header += `<th>${_.escape(d)}</th>`
+      header += `<th>${window.SHAREDFUNCTIONS.escapeHTML(d)}</th>`
       data_by_date[d] = []
     })
 
     $('#table-header-row').html(header)
     let html = ``
-    _.forOwn(data, (field_value, field_key)=>{
-      html += `<tr><td>${_.escape(field_value.label)}</td>`
+    window.lodash.forOwn(data, (field_value, field_key)=>{
+      html += `<tr><td>${window.SHAREDFUNCTIONS.escapeHTML(field_value.label)}</td>`
       days.forEach(d=>{
         let has = false
         field_value.counts.forEach(c=> {
           if (c.day===d) {
             has = true
-            html += `<td><a href="#" class="metric-count-button" data-step="${step}" data-metric_day="${_.escape(c.day_raw)}" data-metric_key="${_.escape(field_key)}" data-metric_label="${_.escape(field_value.label)}">${_.escape(c.count)}</a></td>`
+            html += `<td><a href="#" class="metric-count-button" data-step="${step}" data-metric_day="${window.SHAREDFUNCTIONS.escapeHTML(c.day_raw)}" data-metric_key="${window.SHAREDFUNCTIONS.escapeHTML(field_key)}" data-metric_label="${window.SHAREDFUNCTIONS.escapeHTML(field_value.label)}">${window.SHAREDFUNCTIONS.escapeHTML(c.count)}</a></td>`
           }
         })
         if ( !has ){
@@ -118,7 +118,7 @@ jQuery(document).ready(function() {
 
     if ( date_end && date_start ){
       $('#date-range').html(`
-        Only showing Activity for contacts created between <strong>${_.escape(date_start)}</strong> and <strong>${_.escape(date_end)}</strong>
+        Only showing Activity for contacts created between <strong>${window.SHAREDFUNCTIONS.escapeHTML(date_start)}</strong> and <strong>${window.SHAREDFUNCTIONS.escapeHTML(date_end)}</strong>
         <button class="button small hollow" id="clear-date-range">reset</button>
       `)
     }
