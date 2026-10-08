@@ -27,7 +27,6 @@ class DT_Advanced_Metrics_Charts
 
         require_once( 'contact-location-by-un-region.php' );
         new DT_Advanced_Metrics_Chart_Contact_Location_By_Country();
-
     } // End __construct
 }
 DT_Advanced_Metrics_Charts::instance();

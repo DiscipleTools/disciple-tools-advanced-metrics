@@ -137,39 +137,39 @@ class Disciple_Tools_Advanced_Metrics
 
             switch ( $age ) {
                 case '<19':
-                    $data['<19'][ $gender ] ++;
+                    $data['<19'][ $gender ]++;
                     break;
 
                 case '&lt;19':
-                    $data['<19'][ $gender ] ++;
+                    $data['<19'][ $gender ]++;
                     break;
 
                 case '<26':
-                    $data['<26'][ $gender ] ++;
+                    $data['<26'][ $gender ]++;
                     break;
 
                 case '&lt;26':
-                    $data['<26'][ $gender ] ++;
+                    $data['<26'][ $gender ]++;
                     break;
 
                 case '<41':
-                    $data['<41'][ $gender ] ++;
+                    $data['<41'][ $gender ]++;
                     break;
 
                 case '&lt;41':
-                    $data['<41'][ $gender ] ++;
+                    $data['<41'][ $gender ]++;
                     break;
 
                 case '>41':
-                    $data['>41'][ $gender ] ++;
+                    $data['>41'][ $gender ]++;
                     break;
 
                 case '&gt;41':
-                    $data['>41'][ $gender ] ++;
+                    $data['>41'][ $gender ]++;
                     break;
 
                 case null:
-                    $data['not-set'][ $gender ] ++;
+                    $data['not-set'][ $gender ]++;
                     break;
             }
         }
@@ -216,11 +216,11 @@ class Disciple_Tools_Advanced_Metrics
             foreach ( $contact_ids as $id ) {
                 $gender = self::get_postmeta_value( $id, 'gender' );
                 if ( $gender === 'male' ) {
-                    $male_count ++;
+                    $male_count++;
                 }
 
                 if ( $gender === 'female' ) {
-                    $female_count ++;
+                    $female_count++;
                 }
             }
             if ( $female_count === 0 ) {
@@ -1156,7 +1156,7 @@ class Disciple_Tools_Advanced_Metrics
 
         foreach ( $member_ids as $id ) {
             if ( self::get_postmeta_value( $id, 'gender' ) === $gender ) {
-                $gender_count ++;
+                $gender_count++;
             }
         }
         return $gender_count;
@@ -1170,7 +1170,7 @@ class Disciple_Tools_Advanced_Metrics
 
         foreach ( $leader_ids as $id ) {
             if ( self::get_postmeta_value( $id, 'gender' ) === $gender ) {
-                $gender_count ++;
+                $gender_count++;
             }
         }
         return $gender_count;
@@ -1221,7 +1221,7 @@ class Disciple_Tools_Advanced_Metrics
 
     private function get_factors( $num ) {
         $factors = [];
-        for ( $x = 1; $x <= $num; $x ++ ) {
+        for ( $x = 1; $x <= $num; $x++ ) {
             if ( $num % $x == 0 ) {
                 $factors[] = $x;
             }
