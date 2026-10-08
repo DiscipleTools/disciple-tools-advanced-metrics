@@ -653,5 +653,4 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
 
         return $days_active_results;
     }
-
 }

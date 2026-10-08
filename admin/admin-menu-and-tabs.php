@@ -36,7 +36,6 @@ class DT_Advanced_Metrics_Menu {
     public function __construct() {
 
         add_action( 'admin_menu', array( $this, 'register_menu' ) );
-
     } // End __construct()
 
 

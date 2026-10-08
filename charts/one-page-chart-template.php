@@ -94,5 +94,4 @@ class DT_Advanced_Metrics_Chart_Template extends DT_Metrics_Chart_Base
             return new WP_Error( __METHOD__, 'Missing parameters.' );
         }
     }
-
 }
