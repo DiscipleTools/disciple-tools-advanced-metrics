@@ -8,7 +8,7 @@ class Disciple_Tools_Advanced_Metrics
      * @link https://github.com/DiscipleTools/Documentation/blob/master/theme-core/capabilities.md
      * @var string[]
      */
-    public $permissions = [ 'access_contacts', 'dt_all_access_contacts', 'view_project_metrics' ];
+    public $permissions = [ 'dt_all_access_contacts', 'view_project_metrics' ];
 
 
     /**
@@ -22,6 +22,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_gender_ratio', [
                 'methods'  => 'GET',
                 'callback' => [ $this, 'get_gender_ratio' ],
+                'permission_callback' => [ $this, 'has_permission' ],
                 // 'permission_callback' => function( WP_REST_Request $request ) {
                 //     return $this->has_permission();
                 // },
@@ -32,6 +33,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_gender_ratio_chart', [
                 'methods'  => 'GET',
                 'callback' => [ $this, 'get_gender_ratio_chart' ],
+                'permission_callback' => [ $this, 'has_permission' ],
                 // 'permission_callback' => function( WP_REST_Request $request ) {
                 //     return $this->has_permission();
                 // },
@@ -42,6 +44,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_bible_reading_ratio', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_bible_reading_ratio' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -49,6 +52,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_leader_gender_ratio', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_leader_gender_ratio' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -56,6 +60,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_groups_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_groups_data' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -63,6 +68,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_groups_corr_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_groups_corr_data' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -70,6 +76,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_contacts_corr_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_contacts_corr_data' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -77,6 +84,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_groups_insights', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_groups_insights' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -84,6 +92,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_contacts_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_contacts_data' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -91,6 +100,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_contacts_insights', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_contacts_insights' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -98,6 +108,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_average_contact_journey_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_average_contact_journey_data' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -105,6 +116,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_average_contact_journey_text', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_average_contact_journey_text' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
 
@@ -112,6 +124,7 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_population_pyramid', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_population_pyramid' ],
+                'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
     }
