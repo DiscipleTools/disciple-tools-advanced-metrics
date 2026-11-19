@@ -832,6 +832,11 @@ class Disciple_Tools_Advanced_Metrics
 
     // Get the average contact data in order to compare it to a specific contact's progress
     public function get_average_contact_journey_data() {
+        $cached_data = get_transient( 'dt_advanced_metrics_contact_journey' );
+        if ( $cached_data ) {
+            return $cached_data;
+        }
+
         $contact_ids = self::get_ids( 'contacts' );
         $today = gmdate( 'Y-m-d H:i:s', time() );
         $all_elapsed_times = null;
@@ -1060,6 +1065,7 @@ class Disciple_Tools_Advanced_Metrics
                 'formatted_time' => self::seconds_to_time( $average_seconds ),
             ];
         }
+        set_transient( 'dt_advanced_metrics_contact_journey', $output, 60 *60 *24 );
         return $output;
     }
 
@@ -1105,8 +1111,8 @@ class Disciple_Tools_Advanced_Metrics
             $wpdb->dt_activity_log WHERE
             object_id = %d AND
             object_subtype = 'faith_status' AND
-            object_note = CONCAT( 'Added Faith Status: ', %s ) OR
-            object_note REGEXP CONCAT( 'Faith Status changed from \".+?\" to \"', %s, '\"' )
+            ( object_note = CONCAT( 'Added Faith Status: ', %s ) OR
+            object_note REGEXP CONCAT( 'Faith Status changed from \".+?\" to \"', %s, '\"' ) )
             ORDER BY histid DESC
             LIMIT 1;", $contact_id, $faith_status, $faith_status )
         );
