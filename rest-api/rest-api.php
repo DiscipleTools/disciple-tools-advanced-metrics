@@ -57,14 +57,6 @@ class Disciple_Tools_Advanced_Metrics
         );
 
         register_rest_route(
-            $namespace, '/get_groups_data', [
-                'methods' => 'GET',
-                'callback' => [ $this, 'get_groups_data' ],
-                'permission_callback' => [ $this, 'has_permission' ],
-            ]
-        );
-
-        register_rest_route(
             $namespace, '/get_groups_corr_data', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_groups_corr_data' ],
@@ -84,14 +76,6 @@ class Disciple_Tools_Advanced_Metrics
             $namespace, '/get_groups_insights', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_groups_insights' ],
-                'permission_callback' => [ $this, 'has_permission' ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace, '/get_contacts_data', [
-                'methods' => 'GET',
-                'callback' => [ $this, 'get_contacts_data' ],
                 'permission_callback' => [ $this, 'has_permission' ],
             ]
         );
