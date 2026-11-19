@@ -87,6 +87,10 @@ class DT_Advanced_Metrics_Chart_Streams extends DT_Metrics_Chart_Base {
     }
 
     public function get_count_data( WP_REST_Request $request ){
+        return DT_Advanced_Metrics_Charts::remove_hidden_private_contacts( $this->query_count_data( $request ) );
+    }
+
+    private function query_count_data( WP_REST_Request $request ){
         $params = $request->get_params();
         if ( isset( $params['step'], $params['metric_day'], $params['metric_key'] ) ){
             $step = $params['step'];
