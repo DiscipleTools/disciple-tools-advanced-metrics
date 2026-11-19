@@ -275,7 +275,7 @@ class Disciple_Tools_Advanced_Metrics
 
         $response = $wpdb->get_results("
             SELECT post_id
-            FROM wp_postmeta
+            FROM $wpdb->postmeta
             WHERE (meta_key = 'gender' AND meta_value = 'male')
             OR (meta_key = 'faith_status' AND meta_value = 'leader')
             GROUP BY post_id
@@ -287,7 +287,7 @@ class Disciple_Tools_Advanced_Metrics
 
         $response = $wpdb->get_results("
             SELECT post_id
-            FROM wp_postmeta
+            FROM $wpdb->postmeta
             WHERE (meta_key = 'gender' AND meta_value = 'female')
             OR (meta_key = 'faith_status' AND meta_value = 'leader')
             GROUP BY post_id
@@ -1254,10 +1254,10 @@ class Disciple_Tools_Advanced_Metrics
     private function get_ids( $post_type ) {
         global $wpdb;
         $response = $wpdb->get_col(
-            $wpdb->prepare( '
+            $wpdb->prepare( "
                 SELECT ID
-                FROM wp_posts
-                WHERE post_type = %s;', $post_type )
+                FROM $wpdb->posts
+                WHERE post_type = %s;", $post_type )
         );
         return $response;
     }
