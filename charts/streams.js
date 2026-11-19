@@ -104,7 +104,7 @@ jQuery(document).ready(function() {
 
   $(document).on("click", '.metric-count-button', function () {
     let modal = $('#advanced_metrics_modal');
-    $(modal).find('#advanced_metrics_modal_title').html($(this).data('metric_label'));
+    $(modal).find('#advanced_metrics_modal_title').text($(this).data('metric_label'));
     $(modal).find('#advanced_metrics_modal_table_body').empty();
     $(modal).data('step', $(this).data('step'));
     $(modal).data('metric_day', $(this).data('metric_day'));
