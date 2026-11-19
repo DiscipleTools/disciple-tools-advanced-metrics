@@ -74,6 +74,11 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
                 'methods'  => 'GET',
                 'callback' => [ $this, 'get_data' ],
                 'permission_callback' => [ $this, 'has_permission' ],
+                'args' => [
+                    'step' => [ 'type' => 'string' ],
+                    'date_start' => [ 'type' => 'string' ],
+                    'date_end' => [ 'type' => 'string' ],
+                ],
             ]
         );
         register_rest_route(
@@ -81,6 +86,13 @@ class DT_Advanced_Metrics_Chart_Activity extends DT_Metrics_Chart_Base {
                 'methods'  => 'POST',
                 'callback' => [ $this, 'get_count_data' ],
                 'permission_callback' => [ $this, 'has_permission' ],
+                'args' => [
+                    'step' => [ 'type' => 'string' ],
+                    'metric_day' => [ 'type' => 'string' ],
+                    'metric_key' => [ 'type' => 'string' ],
+                    'date_start' => [ 'type' => 'string' ],
+                    'date_end' => [ 'type' => 'string' ],
+                ],
             ]
         );
     }

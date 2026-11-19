@@ -20,8 +20,6 @@ class DT_Advanced_Metrics_Chart_Template extends DT_Metrics_Chart_Base
     public function __construct() {
         parent::__construct();
 
-        add_action( 'rest_api_init', [ $this, 'add_api_routes' ] );
-
         if ( !$this->has_permission() ){
             return;
         }
@@ -69,29 +67,5 @@ class DT_Advanced_Metrics_Chart_Template extends DT_Metrics_Chart_Base
                 ]
             ]
         );
-    }
-
-    public function add_api_routes() {
-        $namespace = "$this->base_slug/$this->slug";
-        register_rest_route(
-            $namespace, '/sample', [
-                'methods'  => 'POST',
-                'callback' => [ $this, 'sample' ],
-                'permission_callback' => function( WP_REST_Request $request ) {
-                    return $this->has_permission();
-                },
-            ]
-        );
-    }
-
-    public function sample( WP_REST_Request $request ) {
-        $params = $request->get_params();
-        if ( isset( $params['button_data'] ) ) {
-            // Do something
-            $results = $params['button_data'];
-            return $results;
-        } else {
-            return new WP_Error( __METHOD__, 'Missing parameters.' );
-        }
     }
 }

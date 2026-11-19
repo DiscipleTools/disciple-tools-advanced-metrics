@@ -60,7 +60,6 @@
       $('#sample_spinner').removeClass("active")
       var chart = am4core.create("chartdiv", am4charts.PieChart);
       chart.data = data
-      console.log( data )
 
       // Add and configure Series
       var pieSeries = chart.series.push(new am4charts.PieSeries());
