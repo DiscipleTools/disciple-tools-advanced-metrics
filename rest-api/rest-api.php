@@ -1070,6 +1070,9 @@ class Disciple_Tools_Advanced_Metrics
             return;
         }
         $arr_times = array_filter( $arr_times );
+        if ( empty( $arr_times ) ) {
+            return;
+        }
         $avg_time = array_sum( $arr_times ) / count( $arr_times );
         return $avg_time;
     }
